@@ -6,10 +6,16 @@ import Chatbot from './components/Chatbot';
 import TabButton from './components/TabButton';
 import GeneratorView from './components/GeneratorView';
 import SettingsModal from './components/SettingsModal';
-import { ActiveView, ValidationIssue } from './types';
-import { analyzeScript, improveScript, generateScript, validateScript } from './services/geminiService';
+import HistoryPanel from './components/HistoryPanel';
+import GithubPanel from './components/GithubPanel';
+import KnowledgeBaseView from './components/KnowledgeBaseView';
+import { ActiveView, ValidationIssue, ScriptHistoryEntry, GithubUser, Gist } from './types';
+import { analyzeScript, improveScript, generateScript, validateScript, executeScript } from './services/geminiService';
+import { getUser, getGistContent, createGist, updateGist } from './services/githubService';
 import { useLanguage } from './context/LanguageContext';
 import { useIconContext } from './context/IconContext';
+
+const MAX_HISTORY_ENTRIES = 20;
 
 const App: React.FC = () => {
   const { t } = useLanguage();
@@ -30,8 +36,16 @@ const App: React.FC = () => {
   const [activeView, setActiveView] = useState<ActiveView>(ActiveView.Assistant);
   const [showSaveNotification, setShowSaveNotification] = useState<boolean>(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
+  const [isHistoryPanelOpen, setIsHistoryPanelOpen] = useState<boolean>(false);
+  const [isGithubPanelOpen, setIsGithubPanelOpen] = useState<boolean>(false);
   const [validationIssues, setValidationIssues] = useState<ValidationIssue[]>([]);
   const [fullscreenView, setFullscreenView] = useState<'editor' | 'result' | null>(null);
+  const [scriptHistory, setScriptHistory] = useState<ScriptHistoryEntry[]>([]);
+
+  // GitHub State
+  const [githubToken, setGithubToken] = useState<string | null>(null);
+  const [githubUser, setGithubUser] = useState<GithubUser | null>(null);
+  const [currentGistId, setCurrentGistId] = useState<string | null>(null);
 
   const tabContainerRef = useRef<HTMLDivElement>(null);
   const [sliderStyle, setSliderStyle] = useState({});
@@ -46,6 +60,20 @@ const App: React.FC = () => {
     generatorPromptRef.current = generatorPrompt;
   }, [generatorPrompt]);
 
+  // Load data from localStorage on initial render
+  useEffect(() => {
+    try {
+      const savedHistory = localStorage.getItem('bashstudio-script-history');
+      if (savedHistory) setScriptHistory(JSON.parse(savedHistory));
+
+      const savedToken = localStorage.getItem('bashstudio-github-token');
+      if (savedToken) handleTokenSubmit(savedToken);
+
+    } catch (error) {
+      console.error("Failed to load data from localStorage:", error);
+    }
+  }, []);
+
   const handleToggleFullscreen = (view: 'editor' | 'result') => {
     setFullscreenView(prev => (prev === view ? null : view));
   };
@@ -57,29 +85,41 @@ const App: React.FC = () => {
     }
   };
   
-  const handleSaveScript = () => {
+  const handleSaveScript = useCallback(() => {
     localStorage.setItem('bashstudio-script', script);
     setShowSaveNotification(true);
     setTimeout(() => {
       setShowSaveNotification(false);
     }, 2000);
+    
+    // Update history
+    setScriptHistory(prevHistory => {
+        if (prevHistory.length > 0 && prevHistory[0].content === script) {
+            return prevHistory;
+        }
+        const newEntry: ScriptHistoryEntry = { timestamp: Date.now(), content: script };
+        const updatedHistory = [newEntry, ...prevHistory].slice(0, MAX_HISTORY_ENTRIES);
+        localStorage.setItem('bashstudio-script-history', JSON.stringify(updatedHistory));
+        return updatedHistory;
+    });
+
+  }, [script]);
+
+  const handleRestoreScript = (content: string) => {
+    setScript(content);
+    setCurrentGistId(null);
+    setIsHistoryPanelOpen(false);
   };
 
   useEffect(() => {
     const autoSaveInterval = setInterval(() => {
-      if (scriptRef.current !== '#!/bin/bash\n\n# Bem-vindo ao BashStudio!\n# Escreva seu script aqui ou descreva um para ser gerado.\n\necho "Olá, Mundo!"' && scriptRef.current) {
-        localStorage.setItem('bashstudio-script', scriptRef.current);
-        setShowSaveNotification(true);
-        setTimeout(() => {
-          setShowSaveNotification(false);
-        }, 2000);
+      const currentScript = scriptRef.current;
+      if (currentScript !== '#!/bin/bash\n\n# Bem-vindo ao BashStudio!\n# Escreva seu script aqui ou descreva um para ser gerado.\n\necho "Olá, Mundo!"' && currentScript) {
+        handleSaveScript();
       }
     }, 30000);
-
-    return () => {
-      clearInterval(autoSaveInterval);
-    };
-  }, []);
+    return () => clearInterval(autoSaveInterval);
+  }, [handleSaveScript]);
 
   useEffect(() => {
     const autoSaveInterval = setInterval(() => {
@@ -87,7 +127,6 @@ const App: React.FC = () => {
             localStorage.setItem('bashstudio-generator-prompt', generatorPromptRef.current);
         }
     }, 30000);
-
     return () => clearInterval(autoSaveInterval);
   }, []);
 
@@ -103,50 +142,120 @@ const App: React.FC = () => {
     }
   }, [activeView]);
 
+  // --- GitHub Handlers ---
+  const handleTokenSubmit = async (token: string) => {
+    try {
+      const user = await getUser(token);
+      setGithubUser(user);
+      setGithubToken(token);
+      localStorage.setItem('bashstudio-github-token', token);
+      return true;
+    } catch (error) {
+      console.error("GitHub token validation failed:", error);
+      setGithubUser(null);
+      setGithubToken(null);
+      localStorage.removeItem('bashstudio-github-token');
+      return false;
+    }
+  };
+
+  const handleGithubLogout = () => {
+    setGithubUser(null);
+    setGithubToken(null);
+    localStorage.removeItem('bashstudio-github-token');
+  };
+
+  const handleLoadGist = async (gist: Gist) => {
+    if (!githubToken) return;
+    const bashFile = Object.values(gist.files).find(f => f.filename.endsWith('.sh') || f.language === 'Shell');
+    if (bashFile) {
+        try {
+            const content = await getGistContent(bashFile.raw_url, githubToken);
+            setScript(content);
+            setCurrentGistId(gist.id);
+            setIsGithubPanelOpen(false);
+        } catch (error) {
+            console.error("Failed to load Gist content:", error);
+        }
+    }
+  };
+
+  const handleSaveToGist = async (description: string, isPublic: boolean) => {
+    if (!githubToken || !script) return;
+    const filename = description.toLowerCase().replace(/\s+/g, '-') + '.sh';
+    try {
+      const newGist = await createGist(description, filename, script, isPublic, githubToken);
+      setCurrentGistId(newGist.id);
+      // Optional: show a success message
+    } catch(error) {
+      console.error("Failed to create Gist:", error);
+    }
+  };
+
+  const handleUpdateGist = async () => {
+    if (!githubToken || !script || !currentGistId) return;
+    try {
+        await updateGist(currentGistId, script, githubToken);
+        // Optional: show a success message
+    } catch (error) {
+        console.error("Failed to update Gist:", error);
+    }
+  };
+
+  // --- API Call Handler ---
   const handleApiCall = useCallback(async (
-    apiFunc: (param: any) => Promise<string>, 
+    apiFunc: (param: any) => Promise<any>, 
     param: any, 
     titleKey: string, 
     isGenerateOp: boolean = false,
-    onSuccess?: (response: string) => void
+    onSuccess?: (response: any) => void
   ) => {
     const title = t(titleKey);
     setValidationIssues([]);
     setIsLoading(true);
-    if (isGenerateOp) {
-      setIsThinking(true);
-    }
+    if (isGenerateOp) setIsThinking(true);
     setResult('');
     setActiveView(ActiveView.Assistant);
     setResultTitle(t('thinkingTitle', { title }));
     try {
       const response = await apiFunc(param);
-      
       if (onSuccess) {
-        await onSuccess(response);
+        onSuccess(response);
       } else {
         setResult(response);
-        setResultTitle(title);
       }
+      setResultTitle(title);
     } catch (error) {
       console.error(error);
-      const errorMessage = t('errorGeneric');
-      setResult(`Error: ${errorMessage}`);
+      const errorMessage = error instanceof Error ? error.message : t('errorGeneric');
+      const detailedMessage = `${t('errorApiCall')}\n\n**${t('errorDetails')}:**\n\`\`\`\n${errorMessage}\n\`\`\``;
+      setResult(detailedMessage);
       setResultTitle(t('errorTitle', { title }));
     } finally {
       setIsLoading(false);
-      if (isGenerateOp) {
-        setIsThinking(false);
-      }
+      if (isGenerateOp) setIsThinking(false);
     }
   }, [t]);
 
-  const handleAnalyze = () => {
-    handleApiCall(analyzeScript, script, 'analysisTitle');
-  };
-
-  const handleImprove = () => {
-    handleApiCall(improveScript, script, 'improvementTitle');
+  const handleAnalyze = () => handleApiCall(analyzeScript, script, 'analysisTitle');
+  const handleImprove = () => handleApiCall(improveScript, script, 'improvementTitle');
+  
+  const handleExecute = (withSudo: boolean = false) => {
+    const escapedScript = script.replace(/'/g, "'\\''");
+    const scriptToExecute = withSudo ? `sudo bash -c '${escapedScript}'` : script;
+    handleApiCall(executeScript, scriptToExecute, 'executionTitle', false, (response: string) => {
+      setResult(response);
+      setResultTitle(t('executionTitle'));
+      const lines = response.replace(/```text\n?/, '').replace(/```\n?$/, '').split('\n');
+      const newIssues: ValidationIssue[] = [];
+      lines.forEach(line => {
+        const match = line.match(/^L(\d+):\s*(.*)/);
+        if (match) {
+          newIssues.push({ line: parseInt(match[1], 10), message: `Execution Error: ${match[2]}`, severity: 'error' });
+        }
+      });
+      if (newIssues.length > 0) setValidationIssues(newIssues);
+    });
   };
 
   const handleAutoValidate = useCallback(async () => {
@@ -155,94 +264,79 @@ const App: React.FC = () => {
       setValidationIssues([]);
       return;
     }
-
     try {
       const validationResult = await validateScript(scriptToValidate);
-      // Previne condições de corrida: atualiza os problemas apenas se o script não mudou
-      // desde que a validação foi iniciada.
-      if (scriptRef.current === scriptToValidate) {
-        setValidationIssues(validationResult.issues);
-      }
+      if (scriptRef.current === scriptToValidate) setValidationIssues(validationResult.issues);
     } catch (error) {
       console.error("Auto-validation error:", error);
     }
-  }, []); // Dependência vazia é correta pois usa ref.
-
+  }, []);
 
   const handleValidate = async () => {
     setIsLoading(true);
     setValidationIssues([]);
     setResult('');
     setActiveView(ActiveView.Assistant);
-    const validationReportTitle = t('validationSucceededWithIssuesTitle');
-    setResultTitle(t('thinkingTitle', { title: validationReportTitle }));
-
+    const titleKey = 'validationSucceededWithIssuesTitle';
+    setResultTitle(t('thinkingTitle', { title: t(titleKey) }));
     try {
-        const validationResult = await validateScript(script);
-        setValidationIssues(validationResult.issues);
-        let report = `## ${validationReportTitle}\n\n`;
-
-        if (validationResult.issues.length === 0) {
-            report += `**${t('validationPassedMessage')}**\n\n${t('validationPassedBody')}`;
-        } else {
-            const summary = validationResult.isValid 
-                ? t('validationSucceededWithIssuesHeader') 
-                : t('validationReportHeader');
-            report += `${summary}\n\n`;
-
-            validationResult.issues.forEach(issue => {
-                const linePrefix = issue.line ? `${t('validationIssueLine', { line: issue.line.toString() })}: ` : '';
-                report += `- **[${issue.severity.toUpperCase()}]** ${linePrefix}${issue.message}\n`;
-            });
-        }
-        setResult(report);
-        setResultTitle(validationReportTitle);
-
+      const res = await validateScript(script);
+      setValidationIssues(res.issues);
+      let report = `## ${t(titleKey)}\n\n`;
+      if (res.issues.length === 0) {
+        report += `**${t('validationPassedMessage')}**\n\n${t('validationPassedBody')}`;
+      } else {
+        const summary = res.isValid ? t('validationSucceededWithIssuesHeader') : t('validationReportHeader');
+        report += `${summary}\n\n`;
+        res.issues.forEach(issue => {
+          const linePrefix = issue.line ? `${t('validationIssueLine', { line: issue.line.toString() })}: ` : '';
+          report += `- **[${issue.severity.toUpperCase()}]** ${linePrefix}${issue.message}\n`;
+        });
+      }
+      setResult(report);
+      setResultTitle(t(titleKey));
     } catch (error) {
-        console.error(error);
-        const errorMessage = t('errorGeneric');
-        setResult(`Error: ${errorMessage}`);
-        setResultTitle(t('errorTitle', { title: validationReportTitle }));
+      console.error(error);
+      const errorMessage = error instanceof Error ? error.message : t('errorGeneric');
+      setResult(`Error: ${errorMessage}`);
+      setResultTitle(t('errorTitle', { title: t(titleKey) }));
     } finally {
-        setIsLoading(false);
+      setIsLoading(false);
     }
   };
 
   const handleGenerate = () => {
-    const onSuccess = async (generationResponse: string) => {
-        const match = generationResponse.match(/```bash([\s\S]*?)```/);
-        if (match && match[1]) {
-            const extractedScript = match[1].trim();
-            const validationResult = await validateScript(extractedScript);
-
-            let report = '';
-            if (validationResult.issues.length > 0) {
-                const reportTitleKey = validationResult.isValid ? 'validationSucceededWithIssuesTitle' : 'validationFailedTitle';
-                const reportHeaderKey = validationResult.isValid ? 'validationSucceededWithIssuesHeader' : 'validationReportHeader';
-                
-                report += `## ${t(reportTitleKey)}\n\n${t(reportHeaderKey)}\n\n`;
-                validationResult.issues.forEach(issue => {
-                    const linePrefix = issue.line ? `${t('validationIssueLine', { line: issue.line.toString() })}: ` : '';
-                    report += `- **[${issue.severity.toUpperCase()}]** ${linePrefix}${issue.message}\n`;
-                });
-                report += `\n\n---\n\n### ${t('originalGenerationTitle')}\n\n`;
-            }
-
-            if (validationResult.isValid) {
-                setScript(extractedScript);
-                const successMessage = validationResult.issues.length === 0 ? `**${t('validationPassedMessage')}**\n\n` : '';
-                setResult(successMessage + report + generationResponse);
-                setResultTitle(t('generationTitle'));
-            } else {
-                setValidationIssues(validationResult.issues);
-                const fullResult = report + generationResponse;
-                setResult(fullResult);
-                setResultTitle(t('validationFailedTitle'));
-            }
-        } else {
-            setResult(generationResponse);
-            setResultTitle(t('generationTitle'));
+    const onSuccess = async (genResponse: string) => {
+      const match = genResponse.match(/```bash([\s\S]*?)```/);
+      if (match?.[1]) {
+        const extractedScript = match[1].trim();
+        const validation = await validateScript(extractedScript);
+        let report = '';
+        if (validation.issues.length > 0) {
+          const rTitleKey = validation.isValid ? 'validationSucceededWithIssuesTitle' : 'validationFailedTitle';
+          const rHeaderKey = validation.isValid ? 'validationSucceededWithIssuesHeader' : 'validationReportHeader';
+          report += `## ${t(rTitleKey)}\n\n${t(rHeaderKey)}\n\n`;
+          validation.issues.forEach(issue => {
+            const linePrefix = issue.line ? `${t('validationIssueLine', { line: issue.line.toString() })}: ` : '';
+            report += `- **[${issue.severity.toUpperCase()}]** ${linePrefix}${issue.message}\n`;
+          });
+          report += `\n\n---\n\n### ${t('originalGenerationTitle')}\n\n`;
         }
+        if (validation.isValid) {
+          setScript(extractedScript);
+          setCurrentGistId(null);
+          const successMsg = validation.issues.length === 0 ? `**${t('validationPassedMessage')}**\n\n` : '';
+          setResult(successMsg + report + genResponse);
+          setResultTitle(t('generationTitle'));
+        } else {
+          setValidationIssues(validation.issues);
+          setResult(report + genResponse);
+          setResultTitle(t('validationFailedTitle'));
+        }
+      } else {
+        setResult(genResponse);
+        setResultTitle(t('generationTitle'));
+      }
     };
     handleApiCall(generateScript, generatorPrompt, 'generationTitle', true, onSuccess);
   };
@@ -250,6 +344,7 @@ const App: React.FC = () => {
   const AssistantIcon = getIconComponent('assistantTab');
   const GeneratorIcon = getIconComponent('generatorTab');
   const ChatIcon = getIconComponent('chatTab');
+  const KnowledgeBaseIcon = getIconComponent('knowledgeBaseTab');
 
   const renderActiveView = () => {
     switch(activeView) {
@@ -275,13 +370,15 @@ const App: React.FC = () => {
         );
       case ActiveView.Chat:
         return <Chatbot />;
+      case ActiveView.KnowledgeBase:
+        return <KnowledgeBaseView />;
       default:
         return null;
     }
   }
 
   return (
-    <div className="min-h-screen text-white flex flex-col font-sans">
+    <div className="min-h-screen text-gray-800 dark:text-white flex flex-col font-sans">
       <Header onOpenSettings={() => setIsSettingsOpen(true)} />
       <main className="flex-grow p-4 lg:p-6 flex flex-col lg:flex-row gap-6">
         <div className={`
@@ -296,7 +393,10 @@ const App: React.FC = () => {
             onAnalyze={handleAnalyze}
             onImprove={handleImprove}
             onValidate={handleValidate}
+            onExecute={handleExecute}
             onAutoValidate={handleAutoValidate}
+            onToggleHistoryPanel={() => setIsHistoryPanelOpen(true)}
+            onToggleGithubPanel={() => setIsGithubPanelOpen(true)}
             isLoading={isLoading}
             showSaveNotification={showSaveNotification}
             issues={validationIssues}
@@ -309,7 +409,7 @@ const App: React.FC = () => {
           ${fullscreenView === 'result' ? 'w-full' : 'lg:w-1/2'}
           flex-col min-h-[500px] lg:min-h-0 transition-all duration-300
         `}>
-          <div ref={tabContainerRef} className="relative flex border-b border-white/10 mb-4">
+          <div ref={tabContainerRef} className="relative flex border-b border-gray-300 dark:border-white/10 mb-4">
              <TabButton 
                 label={t('tabAssistant')}
                 icon={<AssistantIcon className="h-5 w-5 mr-2" />}
@@ -334,8 +434,16 @@ const App: React.FC = () => {
                 tooltipText={t('tooltipChatbotTab')}
                 view={ActiveView.Chat}
              />
+             <TabButton
+                label={t('tabKnowledgeBase')}
+                icon={<KnowledgeBaseIcon className="h-5 w-5 mr-2" />}
+                isActive={activeView === ActiveView.KnowledgeBase}
+                onClick={() => setActiveView(ActiveView.KnowledgeBase)}
+                tooltipText={t('tooltipKnowledgeBaseTab')}
+                view={ActiveView.KnowledgeBase}
+             />
              <div 
-               className="absolute bottom-0 h-0.5 bg-gradient-to-r from-cyan-400 to-purple-500 transition-all duration-300 ease-in-out" 
+               className="absolute bottom-0 h-0.5 bg-gradient-to-r from-cyan-500 to-purple-600 dark:from-cyan-400 dark:to-purple-500 transition-all duration-300 ease-in-out" 
                style={sliderStyle}
               />
           </div>
@@ -348,6 +456,28 @@ const App: React.FC = () => {
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
       />
+      <HistoryPanel
+        isOpen={isHistoryPanelOpen}
+        onClose={() => setIsHistoryPanelOpen(false)}
+        history={scriptHistory}
+        onRestore={handleRestoreScript}
+      />
+      <GithubPanel
+        isOpen={isGithubPanelOpen}
+        onClose={() => setIsGithubPanelOpen(false)}
+        token={githubToken}
+        user={githubUser}
+        onTokenSubmit={handleTokenSubmit}
+        onLogout={handleGithubLogout}
+        onLoadGist={handleLoadGist}
+        onSaveGist={handleSaveToGist}
+        onUpdateGist={handleUpdateGist}
+        currentScript={script}
+        currentGistId={currentGistId}
+      />
+      <footer className="text-center py-4 text-xs text-gray-400 dark:text-gray-600">
+        Desenvolvido com ❤️ por Amândio Vaz - 2025
+      </footer>
     </div>
   );
 };

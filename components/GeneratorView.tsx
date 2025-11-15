@@ -1,8 +1,9 @@
-
 import React from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { useIconContext } from '../context/IconContext';
 import Tooltip from './Tooltip';
+import TemplateSelector from './TemplateSelector';
+import { useEditorTheme } from '../context/EditorThemeContext';
 
 interface GeneratorViewProps {
   prompt: string;
@@ -14,16 +15,26 @@ interface GeneratorViewProps {
 const GeneratorView: React.FC<GeneratorViewProps> = ({ prompt, setPrompt, onGenerate, isLoading }) => {
   const { t } = useLanguage();
   const { getIconComponent } = useIconContext();
+  const { theme } = useEditorTheme();
   const GenerateIcon = getIconComponent('generateAction');
 
+  const handleSelectTemplate = (templatePrompt: string) => {
+    setPrompt(templatePrompt);
+  };
+
   return (
-    <div className="bg-black/20 backdrop-blur-xl border border-white/10 rounded-xl flex flex-col h-full p-4 shadow-2xl shadow-black/20">
-      <h2 className="text-xl font-semibold text-gray-200 mb-2 border-b border-white/10 pb-2">{t('generatorTitle')}</h2>
+    <div className="bg-white/60 dark:bg-black/20 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-xl flex flex-col h-full p-4 shadow-lg dark:shadow-2xl dark:shadow-black/20 overflow-y-auto"
+         style={{ backgroundColor: theme.colors.resultBg }}>
+      <h2 className="text-xl font-semibold mb-2 border-b border-gray-300 dark:border-white/10 pb-2" style={{ color: theme.colors.resultTitle }}>{t('generatorTitle')}</h2>
       <textarea
         value={prompt}
         onChange={(e) => setPrompt(e.target.value)}
         placeholder={t('generatorPlaceholder')}
-        className="w-full flex-grow bg-slate-900/50 text-gray-200 p-3 rounded-md font-mono text-sm border border-white/10 focus:ring-2 focus:ring-cyan-500/50 focus:outline-none resize-none"
+        className="w-full flex-grow p-3 rounded-md font-mono text-sm border border-gray-300 dark:border-white/10 focus:ring-2 focus:ring-cyan-500/50 focus:outline-none resize-none min-h-[10rem]"
+        style={{
+          backgroundColor: theme.colors.editorBg,
+          color: theme.colors.editorText
+        }}
       />
       <div className="mt-4">
         <Tooltip text={t('tooltipGenerateFromPrompt')}>
@@ -44,6 +55,9 @@ const GeneratorView: React.FC<GeneratorViewProps> = ({ prompt, setPrompt, onGene
             </span>
           </button>
         </Tooltip>
+      </div>
+      <div className="mt-6 border-t border-gray-300 dark:border-white/10 pt-4">
+        <TemplateSelector onSelectTemplate={handleSelectTemplate} />
       </div>
     </div>
   );

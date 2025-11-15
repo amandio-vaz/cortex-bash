@@ -1,12 +1,13 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { ChatMessage } from '../types';
 import { getChatResponse } from '../services/geminiService';
 import { useLanguage } from '../context/LanguageContext';
 import Tooltip from './Tooltip';
+import { useEditorTheme } from '../context/EditorThemeContext';
 
 const Chatbot: React.FC = () => {
   const { t } = useLanguage();
+  const { theme } = useEditorTheme();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -56,23 +57,25 @@ const Chatbot: React.FC = () => {
   };
 
   return (
-    <div className="bg-black/20 backdrop-blur-xl border border-white/10 rounded-xl flex flex-col h-full p-4 shadow-2xl shadow-black/20">
-      <h2 className="text-xl font-semibold text-gray-200 mb-2 border-b border-white/10 pb-2">{t('chatTitle')}</h2>
+    <div className="bg-white/60 dark:bg-black/20 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-xl flex flex-col h-full p-4 shadow-lg dark:shadow-2xl dark:shadow-black/20"
+         style={{ backgroundColor: theme.colors.resultBg }}>
+      <h2 className="text-xl font-semibold mb-2 border-b border-gray-300 dark:border-white/10 pb-2" style={{ color: theme.colors.resultTitle }}>{t('chatTitle')}</h2>
       <div className="flex-grow overflow-y-auto mb-4 pr-2 space-y-4">
         {messages.map((msg, index) => (
           <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-xs md:max-w-md lg:max-w-lg px-4 py-2 rounded-xl shadow-lg ${msg.role === 'user' ? 'bg-gradient-to-br from-cyan-500 to-blue-600 text-white' : 'bg-slate-800/80 text-gray-200 border border-white/10'}`}>
+            <div className={`max-w-xs md:max-w-md lg:max-w-lg px-4 py-2 rounded-xl shadow-lg ${msg.role === 'user' ? 'bg-gradient-to-br from-cyan-500 to-blue-600 text-white' : 'bg-gray-200 text-gray-800 dark:bg-slate-800/80 dark:text-gray-200 border border-gray-300 dark:border-white/10'}`}
+                 style={ msg.role === 'model' ? { backgroundColor: theme.colors.codeBg, color: theme.colors.codeText } : {}}>
               <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
             </div>
           </div>
         ))}
         {isLoading && (
             <div className="flex justify-start">
-                <div className="bg-slate-800/80 text-gray-200 px-4 py-2 rounded-xl border border-white/10">
+                <div className="px-4 py-2 rounded-xl border border-gray-300 dark:border-white/10" style={{ backgroundColor: theme.colors.codeBg }}>
                     <div className="flex items-center space-x-2">
-                        <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse [animation-delay:-0.3s]"></div>
-                        <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse [animation-delay:-0.15s]"></div>
-                        <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div>
+                        <div className="w-2 h-2 bg-cyan-500 dark:bg-cyan-400 rounded-full animate-pulse [animation-delay:-0.3s]"></div>
+                        <div className="w-2 h-2 bg-cyan-500 dark:bg-cyan-400 rounded-full animate-pulse [animation-delay:-0.15s]"></div>
+                        <div className="w-2 h-2 bg-cyan-500 dark:bg-cyan-400 rounded-full animate-pulse"></div>
                     </div>
                 </div>
             </div>
@@ -86,7 +89,7 @@ const Chatbot: React.FC = () => {
           onChange={(e) => setInput(e.target.value)}
           onKeyPress={handleKeyPress}
           placeholder={t('chatPlaceholder')}
-          className="w-full bg-slate-900/50 text-gray-200 p-2 pl-4 pr-12 rounded-full border border-white/10 focus:ring-2 focus:ring-cyan-500/50 focus:outline-none"
+          className="w-full bg-gray-100 dark:bg-slate-900/50 text-gray-900 dark:text-gray-200 p-2 pl-4 pr-12 rounded-full border border-gray-300 dark:border-white/10 focus:ring-2 focus:ring-cyan-500/50 focus:outline-none"
           disabled={isLoading}
         />
         <Tooltip text={t('tooltipSend')}>

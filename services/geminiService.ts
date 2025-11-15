@@ -36,6 +36,43 @@ export const improveScript = async (script: string): Promise<string> => {
     }
 };
 
+export const executeScript = async (script: string): Promise<string> => {
+    try {
+        const ai = getAi();
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: `Aja como um terminal Linux em um ambiente não interativo. Execute o seguinte script Bash e retorne a saída.
+
+**REQUISITO CRÍTICO DE FORMATAÇÃO DE ERRO:** Se um comando no script resultar em um erro (ex: comando não encontrado, erro de permissão, erro de sintaxe detectado pelo shell), você DEVE prefixar a linha de erro com \`L<line_number>: \`, onde \`<line_number>\` é a linha exata no script que causou o erro.
+Para saídas normais (stdout) e avisos, NÃO adicione este prefixo.
+Se o script exigir entrada do usuário ou parecer entrar em um loop infinito, anote isso claramente.
+Formate TODA a sua resposta dentro de um único bloco de código \`\`\`text. Não inclua nenhuma explicação fora dele.
+
+**Exemplo de Resposta Esperada com Erro:**
+\`\`\`text
+$ ./meu_script.sh
+Olá, Mundo!
+L5: cat: arquivo_inexistente.txt: No such file or directory
+$
+\`\`\`
+
+**Script para Executar:**
+\`\`\`bash
+${script}
+\`\`\`
+`
+        });
+        const output = response.text.trim();
+        if (output.startsWith('```text') && output.endsWith('```')) {
+            return output;
+        }
+        return '```text\n' + output + '\n```';
+    } catch (error) {
+        console.error("Error executing script:", error);
+        throw error;
+    }
+};
+
 export const generateScript = async (prompt: string): Promise<string> => {
     const langInstruction = `
 ### Requisitos de Comentários (Português do Brasil - pt-BR)
@@ -70,12 +107,24 @@ export const validateScript = async (script: string): Promise<ValidationResult> 
         const ai = getAi();
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash',
-            contents: `Analyze the following Bash script for a range of issues.
-- **Syntax Errors**: Identify critical syntax mistakes that would prevent the script from running. Use 'error' severity.
-- **Security Vulnerabilities**: Find common security risks like command injection, unquoted variables in sensitive contexts, or unsafe use of temp files. Use 'error' or 'warning' severity depending on impact.
-- **Performance & Efficiency**: Detect performance bottlenecks (e.g., commands in tight loops) and inefficient practices (e.g., "useless use of cat"). Use 'performance' severity.
+            contents: `Analyze the following Bash script for a range of issues, providing detailed and actionable feedback for each.
 
-Respond ONLY with a JSON object that adheres to the provided schema.
+- **Syntax & Logic Errors**:
+  - Identify critical syntax mistakes that would prevent the script from running (severity: 'error').
+  - Detect potential infinite loops (e.g., \`while true\` without a proper break condition, or loop variables that are not updated) (severity: 'warning').
+
+- **Security Vulnerabilities**:
+  - Find common security risks like command injection, unquoted variables in sensitive contexts, or unsafe use of temp files (severity: 'error' or 'warning').
+
+- **Best Practices & Code Quality**:
+  - Identify unused variables that are declared but never read (severity: 'warning').
+  - Suggest improvements for clarity and maintainability.
+
+- **Performance & Efficiency**:
+  - Detect performance bottlenecks, such as running external commands inside tight loops where a Bash built-in could be used (severity: 'performance').
+  - Find inefficient command usage, like "useless use of cat" (\`cat file | grep ...\`) or complex pipes (\`grep ... | awk ...\`) that could be simplified into a single command (severity: 'performance').
+
+Respond ONLY with a JSON object that adheres to the provided schema. The \`message\` for each issue must be detailed and clearly explain the problem and a potential solution. Ensure you identify the specific line number for each issue whenever possible.
 
 **IMPORTANT**: Set \`isValid\` to \`false\` only if you find one or more issues with \`severity: 'error'\`. If you only find 'warning' or 'performance' issues, set \`isValid\` to \`true\`. If there are no issues at all, return \`isValid: true\` and an empty \`issues\` array.
 
@@ -96,7 +145,7 @@ ${script}
                                 type: Type.OBJECT,
                                 properties: {
                                     line: { type: Type.INTEGER, description: "The line number of the issue, or null if it's a general script issue.", nullable: true },
-                                    message: { type: Type.STRING, description: "A clear description of the issue." },
+                                    message: { type: Type.STRING, description: "A clear, detailed description of the issue and potential solutions." },
                                     severity: { type: Type.STRING, enum: ['error', 'warning', 'performance'], description: "The severity of the issue." }
                                 },
                                 required: ['message', 'severity']
@@ -114,11 +163,12 @@ ${script}
 
     } catch (error) {
         console.error("Error validating script:", error);
+        const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
         return {
             isValid: false,
             issues: [{
                 line: null,
-                message: "The AI validation service failed to analyze the script.",
+                message: `The AI validation service failed to analyze the script. Details: ${errorMessage}`,
                 severity: 'error'
             }]
         };

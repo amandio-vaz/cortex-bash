@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Tooltip from './Tooltip';
 import { ActiveView } from '../types';
@@ -13,8 +12,8 @@ interface TabButtonProps {
 }
 
 const TabButton: React.FC<TabButtonProps> = ({ label, icon, isActive, onClick, tooltipText, view }) => {
-  const activeClasses = 'text-cyan-400';
-  const inactiveClasses = 'text-gray-400 hover:text-white';
+  const activeClasses = 'text-cyan-600 dark:text-cyan-400';
+  const inactiveClasses = 'text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-white';
 
   return (
     <Tooltip text={tooltipText} className="flex-1">
