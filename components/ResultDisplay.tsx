@@ -3,6 +3,7 @@ import { useLanguage } from '../context/LanguageContext';
 import Tooltip from './Tooltip';
 import { ArrowsPointingInIcon, ArrowsPointingOutIcon } from '../icons';
 import { useEditorTheme } from '../context/EditorThemeContext';
+import { RefactorSuggestion } from '../types';
 
 interface ResultDisplayProps {
   title: string;
@@ -11,6 +12,8 @@ interface ResultDisplayProps {
   isThinking: boolean;
   isFullscreen: boolean;
   onToggleFullscreen: () => void;
+  refactorSuggestion: RefactorSuggestion | null;
+  onApplyRefactoring: () => void;
 }
 
 const CopyButton: React.FC<{ code: string }> = ({ code }) => {
@@ -75,7 +78,7 @@ const ApiResultFormatter: React.FC<{ content: string }> = ({ content }) => {
   );
 };
 
-const ResultDisplay: React.FC<ResultDisplayProps> = ({ title, content, isLoading, isThinking, isFullscreen, onToggleFullscreen }) => {
+const ResultDisplay: React.FC<ResultDisplayProps> = ({ title, content, isLoading, isThinking, isFullscreen, onToggleFullscreen, refactorSuggestion, onApplyRefactoring }) => {
   const { t } = useLanguage();
   const { theme } = useEditorTheme();
   const [isAllCopied, setIsAllCopied] = useState(false);
@@ -205,6 +208,21 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ title, content, isLoading
           </Tooltip>
         </div>
       </div>
+
+      {refactorSuggestion && (
+        <div className="mb-3 p-3 bg-cyan-50 dark:bg-cyan-500/10 border-l-4 border-cyan-400 dark:border-cyan-500 rounded-r-lg flex items-center justify-between shadow-sm">
+            <p className="text-sm font-medium text-cyan-800 dark:text-cyan-200">{t('refactoringSuggestionPrompt')}</p>
+            <Tooltip text={t('tooltipApplyRefactoring')}>
+                <button
+                    onClick={onApplyRefactoring}
+                    className="px-4 py-2 text-sm font-semibold rounded-lg transition-colors duration-200 bg-cyan-100 hover:bg-cyan-200 text-cyan-800 dark:text-white dark:bg-gradient-to-br dark:from-cyan-500 dark:to-blue-500 dark:hover:from-cyan-600 dark:hover:to-blue-600 focus:ring-4 focus:outline-none focus:ring-cyan-200 dark:focus:ring-cyan-800"
+                >
+                    {t('buttonApplyRefactoring')}
+                </button>
+            </Tooltip>
+        </div>
+      )}
+
       <div className="prose dark:prose-invert max-w-none flex-grow overflow-y-auto pr-2"
            style={{ color: theme.colors.resultText }}>
         {renderContent()}

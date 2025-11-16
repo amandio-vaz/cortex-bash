@@ -36,6 +36,42 @@ export const improveScript = async (script: string): Promise<string> => {
     }
 };
 
+export const refactorSelection = async (selection: string): Promise<{ suggestedCode: string, explanation: string }> => {
+    try {
+        const ai = getAi();
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-pro',
+            contents: `Você é um revisor de código especialista. Refatore o seguinte trecho de código Bash para clareza, eficiência e adesão às melhores práticas.
+
+Forneça o código refatorado dentro de um único bloco de código \`\`\`bash.
+Imediatamente após o bloco de código, forneça uma explicação concisa das alterações feitas, formatada como Markdown.
+
+**Trecho de Código para Refatorar:**
+\`\`\`bash
+${selection}
+\`\`\`
+`
+        });
+
+        const fullResponse = response.text.trim();
+        const codeMatch = fullResponse.match(/```bash([\s\S]*?)```/);
+        const suggestedCode = codeMatch?.[1]?.trim() || '';
+        const explanation = codeMatch ? fullResponse.substring(codeMatch[0].length).trim() : fullResponse;
+        
+        if (!suggestedCode) {
+            // IA não retornou um bloco de código, talvez apenas tenha explicado.
+            // Trate a resposta inteira como explicação.
+            return { suggestedCode: selection, explanation: fullResponse };
+        }
+
+        return { suggestedCode, explanation };
+
+    } catch (error) {
+        console.error("Error refactoring selection:", error);
+        throw error;
+    }
+};
+
 export const executeScript = async (script: string): Promise<string> => {
     try {
         const ai = getAi();

@@ -116,11 +116,10 @@ const CheckIcon: React.FC<IconProps> = ({ className }) => (
   </svg>
 );
 
-const MagicWandIcon: React.FC<IconProps> = ({ className }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.25278C12 6.25278 14.8987 3.35406 17.5583 6.01369C20.218 8.67332 17.3193 11.572 17.3193 11.572M12 6.25278L17.3193 11.572M12 6.25278L6.68068 11.572M17.3193 11.572L6.68068 1.00002" transform="matrix(1 0 0 -1 0 23.144)" />
-    <path strokeLinecap="round" strokeLinejoin="round" d="M3 21L12 12" />
-  </svg>
+export const MagicWandIcon: React.FC<IconProps> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9.53 16.122a3 3 0 00-5.78 1.128 2.25 2.25 0 01-2.4 2.245 4.5 4.5 0 008.4-2.245c0-.399-.078-.78-.22-1.128zm0 0a15.998 15.998 0 003.388-1.62m-5.043-.025a15.998 15.998 0 011.622-3.385m3.421 3.421a15.998 15.998 0 001.622-3.385m3.421 3.421a15.998 15.998 0 01-3.388-1.62m-5.043-.025a15.998 15.998 0 00-1.622-3.385m7.742 0a15.998 15.998 0 00-3.388-1.622m-5.043-.025a15.998 15.998 0 01-1.622-3.385" />
+    </svg>
 );
 
 const ShieldCheckIcon: React.FC<IconProps> = ({ className }) => (
@@ -333,6 +332,9 @@ export const ICON_LIBRARY: Record<CustomizableAction, Record<string, React.FC<Ic
     'ServerStack': ServerStackIcon,
     'RocketLaunch': RocketLaunchIcon,
   },
+  refactorSelection: {
+    'MagicWand': MagicWandIcon,
+  },
   clearScript: {
     'Trash': TrashIcon,
   },
@@ -358,5 +360,6 @@ export const DEFAULT_ICONS: Record<CustomizableAction, string> = {
     testApi: 'CloudArrowUp',
     apiTestingTab: 'Beaker',
     deploymentGuidesTab: 'ServerStack',
+    refactorSelection: 'MagicWand',
     clearScript: 'Trash',
 };

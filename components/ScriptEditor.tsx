@@ -55,13 +55,14 @@ interface ScriptEditorProps {
   onTestApi: () => void;
   onClearScript: () => void;
   onRunInTerminal: () => void;
+  onRefactorSelection: (selection: string, range: { start: number, end: number }) => void;
   githubUser: GithubUser | null;
   currentGistId: string | null;
   onUpdateGist: () => void;
   onOpenExecutionConfig: () => void;
 }
 
-const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, onUndo, onRedo, canUndo, canRedo, onAnalyze, onImprove, onValidate, onExecute, onAutoValidate, onToggleHistoryPanel, onToggleGithubPanel, isLoading, notificationMessage, issues, isFullscreen, onToggleFullscreen, onAddDocstrings, onOptimizePerformance, onCheckSecurity, onTestApi, onClearScript, onRunInTerminal, githubUser, currentGistId, onUpdateGist, onOpenExecutionConfig }) => {
+const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, onUndo, onRedo, canUndo, canRedo, onAnalyze, onImprove, onValidate, onExecute, onAutoValidate, onToggleHistoryPanel, onToggleGithubPanel, isLoading, notificationMessage, issues, isFullscreen, onToggleFullscreen, onAddDocstrings, onOptimizePerformance, onCheckSecurity, onTestApi, onClearScript, onRunInTerminal, onRefactorSelection, githubUser, currentGistId, onUpdateGist, onOpenExecutionConfig }) => {
   const { t } = useLanguage();
   const { getIconComponent } = useIconContext();
   const { theme } = useEditorTheme();
@@ -71,6 +72,7 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, 
   const [isCopied, setIsCopied] = useState(false);
   const [isPaletteOpen, setIsPaletteOpen] = useState(false);
   const [showScrollButtons, setShowScrollButtons] = useState(false);
+  const [selection, setSelection] = useState({ start: 0, end: 0 });
 
   const LINE_HEIGHT = 20;
   const PADDING_TOP = 12;
@@ -149,6 +151,11 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, 
     textareaRef.current?.scrollTo({ top: textareaRef.current.scrollHeight, behavior: 'smooth' });
   };
 
+  const handleSelect = (e: React.SyntheticEvent<HTMLTextAreaElement>) => {
+    const { selectionStart, selectionEnd } = e.currentTarget;
+    setSelection({ start: selectionStart, end: selectionEnd });
+  };
+
   const ClearIcon = getIconComponent('clearScript');
   const AnalyzeIcon = getIconComponent('analyze');
   const ValidateIcon = getIconComponent('validate');
@@ -159,6 +166,7 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, 
   const OptimizePerformanceIcon = getIconComponent('optimizePerformance');
   const CheckSecurityIcon = getIconComponent('checkSecurity');
   const TestApiIcon = getIconComponent('testApi');
+  const RefactorIcon = getIconComponent('refactorSelection');
 
   const commands = useMemo((): Command[] => [
     { id: 'analyze', name: t('buttonAnalyze'), icon: <AnalyzeIcon />, action: onAnalyze, disabled: isLoading || !script },
@@ -259,6 +267,7 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, 
             value={script}
             onChange={(e) => setScript(e.target.value)}
             onScroll={handleScroll}
+            onSelect={handleSelect}
             placeholder={t('editorPlaceholder')}
             className="absolute inset-0 w-full h-full bg-transparent p-3 pl-8 font-mono text-sm focus:outline-none resize-none z-10"
             style={{ 
@@ -396,6 +405,14 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, 
             </Tooltip>
             <Tooltip text={t('tooltipValidate')}>
                 <button onClick={onValidate} disabled={isLoading || !script} className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-yellow-100 hover:bg-yellow-200 text-yellow-800 dark:text-white dark:bg-gradient-to-br dark:from-yellow-500 dark:to-orange-500 dark:hover:from-yellow-500 dark:hover:to-orange-500 focus:ring-4 focus:outline-none focus:ring-yellow-200 dark:focus:ring-yellow-800"><ValidateIcon className="h-5 w-5 mr-2" />{t('buttonValidate')}</button>
+            </Tooltip>
+            <Tooltip text={t('tooltipRefactorSelection')}>
+                <button 
+                    onClick={() => onRefactorSelection(script.substring(selection.start, selection.end), selection)} 
+                    disabled={isLoading || selection.start === selection.end} 
+                    className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-pink-100 hover:bg-pink-200 text-pink-800 dark:text-white dark:bg-gradient-to-br dark:from-pink-500 dark:to-rose-500 dark:hover:from-pink-500 dark:hover:to-rose-500 focus:ring-4 focus:outline-none focus:ring-pink-200 dark:focus:ring-pink-800">
+                        <RefactorIcon className="h-5 w-5 mr-2" /> {t('buttonRefactorSelection')}
+                </button>
             </Tooltip>
             <Tooltip text={t('tooltipAddDocstrings')}>
               <button onClick={onAddDocstrings} disabled={isLoading || !script} className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-blue-100 hover:bg-blue-200 text-blue-800 dark:text-white dark:bg-gradient-to-br dark:from-blue-500 dark:to-sky-500 dark:hover:from-blue-500 dark:hover:to-sky-500 focus:ring-4 focus:outline-none focus:ring-blue-200 dark:focus:ring-blue-800"><AddDocstringsIcon className="h-5 w-5 mr-2" /> {t('buttonAddDocstrings')}</button>

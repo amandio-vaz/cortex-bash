@@ -12,8 +12,8 @@ import KnowledgeBaseView from './components/KnowledgeBaseView';
 import ApiTestingView from './components/ApiTestingView';
 import DeploymentGuidesView from './components/DeploymentGuidesView';
 import AuthModal from './components/AuthModal';
-import { ActiveView, ValidationIssue, ScriptHistoryEntry, GithubUser, Gist } from './types';
-import { analyzeScript, improveScript, generateScript, validateScript, executeScript, addDocstrings, optimizePerformance, checkSecurity, testApiUsage } from './services/geminiService';
+import { ActiveView, ValidationIssue, ScriptHistoryEntry, GithubUser, Gist, RefactorSuggestion } from './types';
+import { analyzeScript, improveScript, generateScript, validateScript, executeScript, addDocstrings, optimizePerformance, checkSecurity, testApiUsage, refactorSelection } from './services/geminiService';
 import { getUser, getGistContent, createGist, updateGist } from './services/githubService';
 import { useLanguage } from './context/LanguageContext';
 import { useIconContext } from './context/IconContext';
@@ -44,6 +44,7 @@ const App: React.FC = () => {
   const [validationIssues, setValidationIssues] = useState<ValidationIssue[]>([]);
   const [fullscreenView, setFullscreenView] = useState<'editor' | 'result' | null>(null);
   const [scriptHistory, setScriptHistory] = useState<ScriptHistoryEntry[]>([]);
+  const [refactorSuggestion, setRefactorSuggestion] = useState<RefactorSuggestion | null>(null);
 
   // GitHub State
   const [githubToken, setGithubToken] = useState<string | null>(null);
@@ -244,6 +245,7 @@ const App: React.FC = () => {
     onSuccess?: (response: any) => void
   ) => {
     const title = t(titleKey);
+    setRefactorSuggestion(null);
     setValidationIssues([]);
     setIsLoading(true);
     if (isGenerateOp) setIsThinking(true);
@@ -306,6 +308,7 @@ const App: React.FC = () => {
   }, []);
 
   const handleValidate = async () => {
+    setRefactorSuggestion(null);
     setIsLoading(true);
     setValidationIssues([]);
     setResult('');
@@ -340,6 +343,7 @@ const App: React.FC = () => {
 
   const handleGenerate = async (promptToGenerate: string, systemInstruction: string, requiredCommands: string) => {
     const title = t('generationTitle');
+    setRefactorSuggestion(null);
     setValidationIssues([]);
     setIsLoading(true);
     setIsThinking(true);
@@ -400,6 +404,48 @@ const App: React.FC = () => {
     }
   };
 
+  const handleRefactorSelection = async (selectedText: string, range: { start: number; end: number }) => {
+    if (!selectedText) return;
+    
+    setRefactorSuggestion(null); // Clear previous suggestion
+    setIsLoading(true);
+    setResult('');
+    setActiveView(ActiveView.Assistant);
+    const title = t('refactoringTitle');
+    setResultTitle(t('thinkingTitle', { title }));
+
+    try {
+        const { suggestedCode, explanation } = await refactorSelection(selectedText);
+        setRefactorSuggestion({ originalSelection: range, suggestedCode });
+        setResult(explanation);
+        setResultTitle(title);
+    } catch (error) {
+        console.error(error);
+        const errorMessage = error instanceof Error ? error.message : t('errorGeneric');
+        const detailedMessage = `${t('errorApiCall')}\n\n**${t('errorDetails')}:**\n\`\`\`\n${errorMessage}\n\`\`\``;
+        setResult(detailedMessage);
+        setResultTitle(t('errorTitle', { title }));
+    } finally {
+        setIsLoading(false);
+    }
+  };
+
+  const handleApplyRefactoring = () => {
+    if (!refactorSuggestion) return;
+    
+    const { originalSelection, suggestedCode } = refactorSuggestion;
+    const currentScript = scriptRef.current;
+    
+    const newScript = 
+        currentScript.substring(0, originalSelection.start) +
+        suggestedCode +
+        currentScript.substring(originalSelection.end);
+        
+    setScript(newScript);
+    setRefactorSuggestion(null);
+    setNotificationMessage(t('refactoringAppliedNotification'));
+  };
+
   const handleAddDocstrings = () => handleApiCall(addDocstrings, script, 'docstringsTitle', false, (response: string) => {
       resetScript(response);
       setCurrentGistId(null);
@@ -429,6 +475,8 @@ const App: React.FC = () => {
             isThinking={isThinking}
             isFullscreen={fullscreenView === 'result'}
             onToggleFullscreen={() => handleToggleFullscreen('result')}
+            refactorSuggestion={refactorSuggestion}
+            onApplyRefactoring={handleApplyRefactoring}
           />
         );
       case ActiveView.Generator:
@@ -489,6 +537,7 @@ const App: React.FC = () => {
             onTestApi={handleTestApi}
             onClearScript={handleClearScript}
             onRunInTerminal={handleRunInTerminal}
+            onRefactorSelection={handleRefactorSelection}
             githubUser={githubUser}
             currentGistId={currentGistId}
             onUpdateGist={handleUpdateGist}

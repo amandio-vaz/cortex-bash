@@ -40,6 +40,7 @@ export type CustomizableAction =
   | 'testApi'
   | 'apiTestingTab'
   | 'deploymentGuidesTab'
+  | 'refactorSelection'
   | 'clearScript';
 
 export type TemplateCategory = 'file' | 'system' | 'network' | 'utility' | 'api';
@@ -55,6 +56,11 @@ export interface ScriptTemplate {
 export interface ScriptHistoryEntry {
   timestamp: number;
   content: string;
+}
+
+export interface RefactorSuggestion {
+  originalSelection: { start: number; end: number };
+  suggestedCode: string;
 }
 
 // --- Auth Types ---
@@ -102,7 +108,13 @@ export interface CommandEntry {
 
 export interface KnowledgeCategory {
   displayName: string;
-  commands: CommandEntry[];
+  commands?: CommandEntry[];
+  subCategories?: {
+    [key: string]: {
+      displayName: string;
+      commands: CommandEntry[];
+    };
+  };
 }
 
 // --- Deployment Guides Types ---

@@ -323,6 +323,611 @@ export const DEPLOYMENT_GUIDES_DATA: Record<string, DeploymentCategory> = {
           { command: 'sudo usermod -aG docker $USER', description: 'Adiciona seu usuário ao grupo "docker" para executar comandos sem sudo (requer novo login).'},
         ],
       },
+      {
+        title: 'Portainer CE',
+        description: 'Implementa a última versão do Portainer CE, uma interface de gerenciamento de UI leve e poderosa para Docker. Este guia utiliza Docker Compose e segue as melhores práticas de rede e persistência de dados.',
+        useCase: 'Gerenciar visualmente todos os seus ambientes Docker (contêineres, imagens, volumes, redes) de forma centralizada. Simplifica o deploy de aplicações, a análise de logs e o monitoramento de contêineres sem a necessidade de memorizar todos os comandos do Docker CLI.',
+        steps: [
+          { command: 'sudo mkdir -p /opt/docker/portainer && cd /opt/docker/portainer', description: 'Cria e acessa o diretório do projeto Portainer.' },
+          { command: `cat <<'EOF' > docker-compose.yml
+name: portainer-stack
+
+services:
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    command: -H unix:///var/run/docker.sock
+    ports:
+      - "8000:8000"
+      - "9443:9443"
+    volumes:
+      - ./portainer_data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - frontend
+    restart: unless-stopped
+
+networks:
+  frontend:
+    driver: bridge
+EOF`, description: 'Cria o arquivo docker-compose.yml para o Portainer.' },
+          { command: 'docker compose up -d', description: 'Inicia o contêiner do Portainer em segundo plano.' },
+          { command: 'echo "Acesse a interface em: https://SEU_IP_DO_SERVIDOR:9443"', description: 'Instrução de acesso.', isCode: false },
+          { command: 'echo "No primeiro acesso, você precisará criar um usuário administrador."', description: 'Instrução de configuração inicial.', isCode: false },
+        ],
+      },
+      {
+        title: 'Redis',
+        description: 'Implementa uma instância do Redis, um banco de dados em memória de alto desempenho, usando Docker Compose com persistência de dados.',
+        useCase: 'Ideal para cache de aplicações, filas de mensagens, gerenciamento de sessões e como um banco de dados NoSQL rápido. A persistência garante que os dados não sejam perdidos ao reiniciar o contêiner.',
+        steps: [
+          { command: 'sudo mkdir -p /opt/docker/redis && cd /opt/docker/redis', description: 'Cria e acessa o diretório do projeto Redis.' },
+          { command: `cat <<'EOF' > docker-compose.yml
+name: redis-stack
+
+services:
+  redis:
+    image: redis:latest
+    container_name: redis
+    command: redis-server --save 60 1 --loglevel warning
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./redis_data:/data
+    networks:
+      - backend
+    restart: unless-stopped
+
+networks:
+  backend:
+    driver: bridge
+EOF`, description: 'Cria o arquivo docker-compose.yml para o Redis.' },
+          { command: 'docker compose up -d', description: 'Inicia o contêiner do Redis em segundo plano.' },
+          { command: 'echo "Servidor Redis rodando e acessível na porta 6379."', description: 'Confirmação do serviço.', isCode: false },
+        ],
+      },
+      {
+        title: 'PostgreSQL',
+        description: 'Implementa o PostgreSQL, um poderoso banco de dados relacional open-source, com persistência de dados e configuração via variáveis de ambiente.',
+        useCase: 'Perfeito como banco de dados principal para uma vasta gama de aplicações, desde pequenos projetos a grandes sistemas transacionais. Garante a durabilidade dos dados com volumes gerenciados pelo Docker.',
+        steps: [
+          { command: 'sudo mkdir -p /opt/docker/postgres && cd /opt/docker/postgres', description: 'Cria e acessa o diretório do projeto PostgreSQL.' },
+          { command: `cat <<'EOF' > docker-compose.yml
+name: postgres-stack
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    environment:
+      POSTGRES_DB: minha_db
+      POSTGRES_USER: meu_usuario
+      POSTGRES_PASSWORD: SuaSenhaSuperSeguraAltereAqui
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+    networks:
+      - backend
+    restart: unless-stopped
+
+networks:
+  backend:
+    driver: bridge
+EOF`, description: 'Cria o arquivo docker-compose.yml para o PostgreSQL.' },
+          { command: 'docker compose up -d', description: 'Inicia o contêiner do PostgreSQL em segundo plano.' },
+          { command: 'echo "IMPORTANTE: Altere a senha padrão no arquivo docker-compose.yml!"', description: 'Aviso de segurança.', isCode: false },
+          { command: 'echo "Banco de dados PostgreSQL rodando e acessível na porta 5432."', description: 'Confirmação do serviço.', isCode: false },
+        ],
+      },
+      {
+        title: 'MySQL',
+        description: 'Implementa o MySQL, o banco de dados relacional mais popular do mundo, com persistência de dados e configuração de senhas via variáveis de ambiente.',
+        useCase: 'Ideal para aplicações web que utilizam a stack LAMP/LEMP, sistemas de gerenciamento de conteúdo como WordPress, e qualquer aplicação que necessite de um banco de dados relacional robusto e confiável.',
+        steps: [
+          { command: 'sudo mkdir -p /opt/docker/mysql && cd /opt/docker/mysql', description: 'Cria e acessa o diretório do projeto MySQL.' },
+          { command: `cat <<'EOF' > docker-compose.yml
+name: mysql-stack
+
+services:
+  mysql:
+    image: mysql:latest
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: SuaSenhaDeRootSuperSeguraAltereAqui
+      MYSQL_DATABASE: minha_db
+      MYSQL_USER: meu_usuario
+      MYSQL_PASSWORD: SuaSenhaDeUsuarioSuperSeguraAltereAqui
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mysql_data:/var/lib/mysql
+    networks:
+      - backend
+    restart: unless-stopped
+
+networks:
+  backend:
+    driver: bridge
+EOF`, description: 'Cria o arquivo docker-compose.yml para o MySQL.' },
+          { command: 'docker compose up -d', description: 'Inicia o contêiner do MySQL em segundo plano.' },
+          { command: 'echo "IMPORTANTE: Altere as senhas padrão no arquivo docker-compose.yml!"', description: 'Aviso de segurança.', isCode: false },
+          { command: 'echo "Banco de dados MySQL rodando e acessível na porta 3306."', description: 'Confirmação do serviço.', isCode: false },
+        ],
+      },
+      {
+        title: 'FastAPI (Exemplo Completo)',
+        description: 'Cria uma estrutura completa para uma aplicação FastAPI, incluindo o código Python, Dockerfile e Docker Compose para um deploy rápido.',
+        useCase: 'Um ponto de partida excelente para desenvolver APIs de alta performance com Python. O guia cria um ambiente de desenvolvimento e produção pronto para uso e facilmente extensível.',
+        steps: [
+          { command: 'sudo mkdir -p /opt/docker/fastapi_app && cd /opt/docker/fastapi_app', description: 'Cria e acessa o diretório do projeto FastAPI.' },
+          { command: `cat <<'EOF' > main.py
+from fastapi import FastAPI
+
+app = FastAPI()
+
+@app.get("/")
+def read_root():
+    return {"Hello": "World"}
+EOF`, description: 'Cria o arquivo principal da aplicação Python.' },
+          { command: `cat <<'EOF' > requirements.txt
+fastapi
+uvicorn
+EOF`, description: 'Cria o arquivo de dependências Python.' },
+          { command: `cat <<'EOF' > Dockerfile
+FROM python:3.11-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY . .
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80"]
+EOF`, description: 'Cria o Dockerfile para construir a imagem da aplicação.' },
+          { command: `cat <<'EOF' > docker-compose.yml
+name: fastapi-stack
+
+services:
+  web:
+    build: .
+    container_name: fastapi_app
+    ports:
+      - "8000:80"
+    networks:
+      - frontend
+    restart: unless-stopped
+
+networks:
+  frontend:
+    driver: bridge
+EOF`, description: 'Cria o arquivo docker-compose.yml para o FastAPI.' },
+          { command: 'docker compose up -d --build', description: 'Constrói a imagem e inicia o contêiner em segundo plano.' },
+          { command: 'echo "Aplicação FastAPI rodando. Acesse em: http://SEU_IP_DO_SERVIDOR:8000"', description: 'Instrução de acesso.', isCode: false },
+        ],
+      },
+      {
+        title: 'ClickHouse',
+        description: 'Implementa o ClickHouse, um banco de dados colunar de alta performance para processamento analítico online (OLAP).',
+        useCase: 'Perfeito para sistemas de analytics, business intelligence e processamento de grandes volumes de dados de log em tempo real, onde consultas agregadas rápidas são essenciais.',
+        steps: [
+          { command: 'sudo mkdir -p /opt/docker/clickhouse && cd /opt/docker/clickhouse', description: 'Cria e acessa o diretório do projeto ClickHouse.' },
+          { command: `cat <<'EOF' > docker-compose.yml
+name: clickhouse-stack
+
+services:
+  clickhouse-server:
+    image: clickhouse/clickhouse-server:latest
+    container_name: clickhouse
+    ports:
+      - "8123:8123" # HTTP
+      - "9000:9000" # TCP Nativo
+    volumes:
+      - ./clickhouse_data:/var/lib/clickhouse/
+      - ./clickhouse_logs:/var/log/clickhouse-server/
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    networks:
+      - backend
+    restart: unless-stopped
+
+networks:
+  backend:
+    driver: bridge
+EOF`, description: 'Cria o arquivo docker-compose.yml para o ClickHouse.' },
+          { command: 'docker compose up -d', description: 'Inicia o contêiner do ClickHouse em segundo plano.' },
+          { command: 'echo "Servidor ClickHouse rodando. Interface HTTP na porta 8123."', description: 'Confirmação do serviço.', isCode: false },
+        ],
+      },
+      {
+        title: 'Caddy',
+        description: 'Implementa o Caddy, um servidor web moderno e fácil de usar com HTTPS automático.',
+        useCase: 'Ideal como proxy reverso para outras aplicações Docker, servidor de arquivos estáticos ou balanceador de carga. Sua principal vantagem é a configuração automática e renovação de certificados SSL/TLS da Let\'s Encrypt.',
+        steps: [
+          { command: 'sudo mkdir -p /opt/docker/caddy && cd /opt/docker/caddy', description: 'Cria e acessa o diretório do projeto Caddy.' },
+          { command: `cat <<'EOF' > Caddyfile
+# Substitua pelo seu domínio ou use o IP do servidor
+meu-dominio.com {
+    # Exemplo de proxy reverso para um serviço na mesma rede Docker
+    reverse_proxy nome_do_container_app:8000
+}
+EOF`, description: 'Cria um arquivo de configuração Caddyfile de exemplo.' },
+          { command: `cat <<'EOF' > docker-compose.yml
+name: caddy-stack
+
+services:
+  caddy:
+    image: caddy:latest
+    container_name: caddy
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp" # Para HTTP/3
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - ./caddy_data:/data
+      - ./caddy_config:/config
+    networks:
+      - frontend
+    restart: unless-stopped
+
+networks:
+  frontend:
+    driver: bridge
+EOF`, description: 'Cria o arquivo docker-compose.yml para o Caddy.' },
+          { command: 'docker compose up -d', description: 'Inicia o contêiner do Caddy em segundo plano.' },
+          { command: 'echo "Servidor Caddy rodando. Edite o Caddyfile para configurar seus sites."', description: 'Instrução de configuração.', isCode: false },
+        ],
+      },
+      {
+        title: 'Grafana',
+        description: 'Implementa o Grafana, a plataforma open-source líder para visualização e análise de métricas, logs e traces.',
+        useCase: 'Criar dashboards interativos para monitorar a saúde de aplicações, servidores e infraestrutura, conectando-se a diversas fontes de dados como Prometheus, InfluxDB, PostgreSQL e muitas outras.',
+        steps: [
+          { command: 'sudo mkdir -p /opt/docker/grafana && cd /opt/docker/grafana', description: 'Cria e acessa o diretório do projeto Grafana.' },
+          { command: `cat <<'EOF' > docker-compose.yml
+name: grafana-stack
+
+services:
+  grafana:
+    image: grafana/grafana-oss:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./grafana_data:/var/lib/grafana
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+networks:
+  monitoring:
+    driver: bridge
+EOF`, description: 'Cria o arquivo docker-compose.yml para o Grafana.' },
+          { command: 'docker compose up -d', description: 'Inicia o contêiner do Grafana em segundo plano.' },
+          { command: 'echo "Grafana rodando. Acesse em: http://SEU_IP_DO_SERVIDOR:3000"', description: 'Instrução de acesso.', isCode: false },
+          { command: 'echo "Login padrão: admin / admin (será solicitado para alterar a senha no primeiro acesso)."', description: 'Credenciais padrão.', isCode: false },
+        ],
+      },
+      {
+        title: 'n8n',
+        description: 'Implementa o n8n, uma ferramenta de automação de fluxo de trabalho de código aberto, alternativa ao Zapier e Make.',
+        useCase: 'Conectar diferentes APIs e serviços para criar automações complexas baseadas em nós. Ideal para sincronizar dados, criar bots, automatizar marketing e integrar sistemas internos.',
+        steps: [
+          { command: 'sudo mkdir -p /opt/docker/n8n && cd /opt/docker/n8n', description: 'Cria e acessa o diretório do projeto n8n.' },
+          { command: `cat <<'EOF' > docker-compose.yml
+name: n8n-stack
+
+services:
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: n8n
+    ports:
+      - "5678:5678"
+    volumes:
+      - ./n8n_data:/home/node/.n8n
+    environment:
+      - GENERIC_TIMEZONE=America/Sao_Paulo
+    networks:
+      - frontend
+    restart: unless-stopped
+
+networks:
+  frontend:
+    driver: bridge
+EOF`, description: 'Cria o arquivo docker-compose.yml para o n8n.' },
+          { command: 'docker compose up -d', description: 'Inicia o contêiner do n8n em segundo plano.' },
+          { command: 'echo "n8n rodando. Acesse em: http://SEU_IP_DO_SERVIDOR:5678"', description: 'Instrução de acesso.', isCode: false },
+        ],
+      },
+       {
+        title: 'GLPI com MariaDB',
+        description: 'Implementa a stack completa do GLPI, uma poderosa solução ITSM de código aberto, com um banco de dados MariaDB dedicado.',
+        useCase: 'Gerenciar inventário de TI, service desk, licenças de software e ciclo de vida de ativos. Esta configuração isola o GLPI e seu banco de dados para melhor segurança e gerenciamento.',
+        steps: [
+          { command: 'sudo mkdir -p /opt/docker/glpi && cd /opt/docker/glpi', description: 'Cria e acessa o diretório do projeto GLPI.' },
+          { command: `cat <<'EOF' > docker-compose.yml
+name: glpi-stack
+
+services:
+  mariadb:
+    image: mariadb:latest
+    container_name: glpi_db
+    environment:
+      - MYSQL_ROOT_PASSWORD=sua-senha-root-aqui
+      - MYSQL_DATABASE=glpidb
+      - MYSQL_USER=glpiuser
+      - MYSQL_PASSWORD=sua-senha-glpi-aqui
+    volumes:
+      - ./db_data:/var/lib/mysql
+    networks:
+      - backend
+    restart: unless-stopped
+
+  glpi:
+    image: diouxx/glpi:latest
+    container_name: glpi_app
+    ports:
+      - "8080:80"
+    environment:
+      - DB_HOST=mariadb
+      - DB_DATABASE=glpidb
+      - DB_USER=glpiuser
+      - DB_PASSWORD=sua-senha-glpi-aqui
+    volumes:
+      - ./glpi_data:/var/www/html/glpi/files
+      - ./glpi_config:/var/www/html/glpi/config
+      - ./glpi_plugins:/var/www/html/glpi/plugins
+    networks:
+      - frontend
+      - backend
+    depends_on:
+      - mariadb
+    restart: unless-stopped
+
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
+EOF`, description: 'Cria o arquivo docker-compose.yml para GLPI e MariaDB.' },
+          { command: 'docker compose up -d', description: 'Inicia os contêineres da stack GLPI em segundo plano.' },
+          { command: 'echo "IMPORTANTE: Altere as senhas padrão no arquivo docker-compose.yml!"', description: 'Aviso de segurança.', isCode: false },
+          { command: 'echo "Aguarde alguns minutos para o GLPI iniciar. Acesse em: http://SEU_IP_DO_SERVIDOR:8080"', description: 'Instrução de acesso.', isCode: false },
+        ],
+      },
+      {
+        title: 'Stack Prometheus',
+        description: 'Implementa uma stack de monitoramento completa com Prometheus para coleta de métricas, Alertmanager para alertas, Node Exporter para métricas do host e Cadvisor para métricas de contêineres.',
+        useCase: 'Monitoramento robusto de infraestrutura e aplicações. Coleta métricas detalhadas de seus servidores e contêineres Docker, permite a criação de alertas sobre condições anormais e serve como base de dados para dashboards no Grafana.',
+        steps: [
+          { command: 'sudo mkdir -p /opt/docker/prometheus_stack/prometheus && sudo mkdir -p /opt/docker/prometheus_stack/alertmanager && cd /opt/docker/prometheus_stack', description: 'Cria a estrutura de diretórios para a stack.' },
+          { command: `cat <<'EOF' > ./prometheus/prometheus.yml
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+EOF`, description: 'Cria o arquivo de configuração do Prometheus.' },
+          { command: `cat <<'EOF' > ./alertmanager/config.yml
+route:
+  receiver: 'null'
+receivers:
+  - name: 'null'
+EOF`, description: 'Cria um arquivo de configuração básico para o Alertmanager.' },
+          { command: `cat <<'EOF' > docker-compose.yml
+name: monitoring-stack
+
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: alertmanager
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./alertmanager/config.yml:/etc/alertmanager/config.yml
+      - ./alertmanager_data:/alertmanager
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--path.rootfs=/rootfs'
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+networks:
+  monitoring:
+    driver: bridge
+EOF`, description: 'Cria o arquivo docker-compose.yml para a stack de monitoramento.' },
+          { command: 'docker compose up -d', description: 'Inicia todos os serviços de monitoramento.' },
+          { command: 'echo "Stack Prometheus rodando! Prometheus: 9090, Alertmanager: 9093, Node Exporter: 9100, Cadvisor: 8080"', description: 'Informações das portas.', isCode: false },
+        ],
+      },
+      {
+        title: 'Stack Graylog',
+        description: 'Implementa a stack completa do Graylog para gerenciamento centralizado de logs, incluindo OpenSearch como backend de armazenamento e MongoDB para metadados.',
+        useCase: 'Coletar, indexar e analisar logs de múltiplas fontes (servidores, aplicações, dispositivos) em um local centralizado. Facilita a busca de erros, auditorias de segurança e criação de dashboards sobre os dados de log.',
+        steps: [
+          { command: 'sudo mkdir -p /opt/docker/graylog && cd /opt/docker/graylog', description: 'Cria e acessa o diretório do projeto Graylog.' },
+          { command: `cat <<'EOF' > docker-compose.yml
+name: graylog-stack
+
+services:
+  mongo:
+    image: mongo:6.0
+    container_name: graylog_mongo
+    volumes:
+      - ./mongo_data:/data/db
+    networks:
+      - backend
+    restart: unless-stopped
+
+  opensearch:
+    image: opensearchproject/opensearch:2.11.0
+    container_name: graylog_opensearch
+    environment:
+      - 'discovery.type=single-node'
+      - 'OPENSEARCH_JAVA_OPTS=-Xms1g -Xmx1g'
+    volumes:
+      - ./opensearch_data:/usr/share/opensearch/data
+    networks:
+      - backend
+    restart: unless-stopped
+
+  graylog:
+    image: graylog/graylog:5.2
+    container_name: graylog_server
+    depends_on:
+      - opensearch
+      - mongo
+    environment:
+      - GRAYLOG_HTTP_EXTERNAL_URI=http://SEU_IP_DO_SERVIDOR:9000/
+      - GRAYLOG_PASSWORD_SECRET=SuaSenhaSuperSecretaDePeloMenos16Caracteres
+      - GRAYLOG_ROOT_PASSWORD_SHA2=8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918
+      - GRAYLOG_MONGODB_URI=mongodb://mongo:27017/graylog
+      - GRAYLOG_ELASTICSEARCH_HOSTS=http://opensearch:9200
+    ports:
+      - "9000:9000"    # Graylog API/UI
+      - "5044:5044"    # Beats
+      - "12201:12201/udp" # GELF
+      - "1514:1514/udp"   # Syslog
+    volumes:
+      - ./graylog_data:/usr/share/graylog/data
+    networks:
+      - frontend
+      - backend
+    restart: unless-stopped
+
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
+EOF`, description: 'Cria o arquivo docker-compose.yml para a stack Graylog.' },
+          { command: 'docker compose up -d', description: 'Inicia os contêineres da stack Graylog.' },
+          { command: 'echo "IMPORTANTE: Substitua SEU_IP_DO_SERVIDOR e a senha secreta no compose!"', description: 'Aviso de configuração.', isCode: false },
+          { command: 'echo "O hash de senha para \'admin\' é o padrão. Acesse a UI na porta 9000."', description: 'Instrução de acesso.', isCode: false },
+        ],
+      },
+      {
+        title: 'Stack Wazuh (Single-Node)',
+        description: 'Implementa uma stack completa do Wazuh em modo single-node, incluindo o Wazuh indexer, manager e dashboard.',
+        useCase: 'Plataforma de segurança para detecção de ameaças, monitoramento de integridade, resposta a incidentes e conformidade. Ideal para monitorar a segurança de servidores e endpoints em um ambiente centralizado.',
+        steps: [
+          { command: 'sudo mkdir -p /opt/docker/wazuh && cd /opt/docker/wazuh', description: 'Cria e acessa o diretório do projeto Wazuh.' },
+          { command: `cat <<'EOF' > docker-compose.yml
+name: wazuh-stack
+
+services:
+  wazuh-indexer:
+    image: wazuh/wazuh-indexer:latest
+    container_name: wazuh_indexer
+    ports:
+      - "9200:9200"
+    volumes:
+      - ./wazuh-indexer-data:/var/lib/wazuh-indexer
+    environment:
+      - 'INDEXER_USERNAME=admin'
+      - 'INDEXER_PASSWORD=SuaSenhaSuperSeguraAqui'
+    networks:
+      - wazuh-net
+    restart: unless-stopped
+
+  wazuh-manager:
+    image: wazuh/wazuh-manager:latest
+    container_name: wazuh_manager
+    ports:
+      - "1514:1514/udp"
+      - "1515:1515"
+      - "55000:55000"
+    volumes:
+      - ./wazuh-manager-data:/var/ossec/data
+    depends_on:
+      - wazuh-indexer
+    environment:
+      - 'WAZUH_INDEXER_URL=http://wazuh-indexer:9200'
+      - 'WAZUH_INDEXER_USER=admin'
+      - 'WAZUH_INDEXER_PASSWORD=SuaSenhaSuperSeguraAqui'
+    networks:
+      - wazuh-net
+    restart: unless-stopped
+
+  wazuh-dashboard:
+    image: wazuh/wazuh-dashboard:latest
+    container_name: wazuh_dashboard
+    ports:
+      - "443:443"
+    depends_on:
+      - wazuh-indexer
+    environment:
+      - 'DASHBOARD_USERNAME=admin'
+      - 'DASHBOARD_PASSWORD=SuaSenhaSuperSeguraAqui'
+      - 'WAZUH_INDEXER_URL=http://wazuh-indexer:9200'
+    networks:
+      - wazuh-net
+    restart: unless-stopped
+
+volumes:
+  wazuh-indexer-data:
+  wazuh-manager-data:
+
+networks:
+  wazuh-net:
+    driver: bridge
+EOF`, description: 'Cria o arquivo docker-compose.yml para a stack Wazuh.' },
+          { command: 'docker compose up -d', description: 'Inicia os contêineres da stack Wazuh.' },
+          { command: 'echo "IMPORTANTE: Altere a senha padrão em todos os serviços no compose!"', description: 'Aviso de segurança.', isCode: false },
+          { command: 'echo "Aguarde alguns minutos para a inicialização. Acesse o dashboard em https://SEU_IP_DO_SERVIDOR"', description: 'Instrução de acesso.', isCode: false },
+        ],
+      },
     ],
   },
   microk8s: {
