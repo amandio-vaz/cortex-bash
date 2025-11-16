@@ -175,6 +175,102 @@ ${script}
     }
 };
 
+export const addDocstrings = async (script: string): Promise<string> => {
+    try {
+        const ai = getAi();
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-pro', // Using pro for better code understanding
+            contents: `Você é um engenheiro de software sênior especializado em Bash. Sua tarefa é adicionar documentação detalhada e completa ao script Bash fornecido, em Português do Brasil (pt-BR).
+
+**Requisitos:**
+1.  **Bloco de Cabeçalho:** Adicione ou complete o bloco de cabeçalho no início do script. Ele deve incluir:
+    -   \`@Descrição\`: Uma descrição clara do que o script faz.
+    -   \`@Autor\`: O nome do autor (use "BashStudio AI").
+    -   \`@Uso\`: Como executar o script, incluindo exemplos de argumentos.
+    -   \`@Dependências\`: Quaisquer ferramentas ou comandos externos necessários.
+2.  **Documentação de Funções:** Para cada função no script:
+    -   Adicione um bloco de comentários logo acima da definição da função.
+    -   Descreva o propósito da função.
+    -   Liste e explique todos os \`@Parâmetros\`.
+    -   Descreva o que a função \`@Retorna\`.
+3.  **Comentários Inline:** Adicione comentários inline para explicar linhas ou blocos de código complexos, pipelines de comandos ou lógica não óbvia.
+4.  **Manter Código Original:** NÃO modifique a lógica do script. Apenas adicione comentários e documentação.
+5.  **Formato de Saída:** Retorne APENAS o script Bash completo e documentado dentro de um único bloco de código \`\`\`bash. Não inclua nenhuma explicação fora do bloco de código.
+
+**Script para Documentar:**
+\`\`\`bash
+${script}
+\`\`\`
+`
+        });
+        const fullResponse = response.text.trim();
+        const match = fullResponse.match(/```bash([\s\S]*?)```/);
+        return match?.[1] ? match[1].trim() : fullResponse; // Return only the code
+    } catch (error) {
+        console.error("Error adding docstrings:", error);
+        throw error;
+    }
+};
+
+export const optimizePerformance = async (script: string): Promise<string> => {
+    try {
+        const ai = getAi();
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-pro',
+            contents: `Você é um engenheiro de desempenho de sistemas especialista em Bash. Analise o script Bash a seguir em busca de gargalos de desempenho e oportunidades de otimização.
+
+**Sua tarefa:**
+1.  **Reescrever o Script:** Forneça uma versão otimizada do script que seja mais rápida e/ou use menos recursos (CPU, memória).
+2.  **Explicar as Mudanças:** Após o bloco de código, forneça uma lista detalhada com marcadores explicando CADA otimização que você fez e por que ela melhora o desempenho. Por exemplo, substituir comandos externos por built-ins do Bash, otimizar loops, reduzir chamadas de processo, etc.
+3.  **Formato de Saída:** Primeiro, o script otimizado dentro de um bloco \`\`\`bash. Depois, a explicação detalhada em Markdown.
+
+**Script Original:**
+\`\`\`bash
+${script}
+\`\`\`
+`
+        });
+        return response.text;
+    } catch (error) {
+        console.error("Error optimizing script:", error);
+        throw error;
+    }
+};
+
+export const checkSecurity = async (script: string): Promise<string> => {
+    try {
+        const ai = getAi();
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: `Aja como um especialista em segurança de aplicações (AppSec) realizando uma auditoria de segurança no script Bash a seguir.
+
+**Sua tarefa:**
+1.  **Analisar Vulnerabilidades:** Verifique o script em busca de vulnerabilidades de segurança comuns, incluindo, mas não se limitando a:
+    -   **Injeção de Comandos:** Uso de variáveis não sanitizadas em \`eval\` ou diretamente em comandos.
+    -   **Uso de Variáveis sem Aspas:** Variáveis que podem sofrer word splitting ou expansão de glob.
+    -   **Arquivos Temporários Inseguros:** Uso de nomes de arquivo previsíveis em /tmp.
+    -   **Credenciais Hardcoded:** Senhas, tokens de API ou chaves secretas no código.
+    -   **Permissões Inseguras:** Comandos que podem ser explorados se executados com permissões elevadas.
+2.  **Gerar Relatório:** Forneça um relatório detalhado em formato Markdown.
+    -   Para cada vulnerabilidade encontrada, crie um cabeçalho (ex: "### Injeção de Comando na Linha 15").
+    -   Descreva o **Risco** da vulnerabilidade.
+    -   Mostre o **Trecho de Código Vulnerável**.
+    -   Forneça uma **Remediação** sugerida com um exemplo de código corrigido.
+    -   Se nenhuma vulnerabilidade for encontrada, retorne uma mensagem clara afirmando que a verificação foi concluída e nenhum problema de segurança óbvio foi detectado.
+
+**Script para Análise:**
+\`\`\`bash
+${script}
+\`\`\`
+`
+        });
+        return response.text;
+    } catch (error) {
+        console.error("Error checking security:", error);
+        throw error;
+    }
+};
+
 let chatInstance: Chat | null = null;
 
 export const getChatResponse = async (history: { role: 'user' | 'model'; parts: { text: string }[] }[], newMessage: string): Promise<string> => {

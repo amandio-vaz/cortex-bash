@@ -30,7 +30,10 @@ export type CustomizableAction =
   | 'generatorTab' 
   | 'chatTab'
   | 'knowledgeBaseTab'
-  | 'generateAction';
+  | 'generateAction'
+  | 'addDocstrings'
+  | 'optimizePerformance'
+  | 'checkSecurity';
 
 export type TemplateCategory = 'file' | 'system' | 'network' | 'utility';
 

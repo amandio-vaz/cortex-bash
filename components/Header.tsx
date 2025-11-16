@@ -27,7 +27,7 @@ const Header: React.FC<HeaderProps> = ({ onOpenSettings }) => {
                 {appearance === 'light' ? <MoonIcon className="h-6 w-6" /> : <SunIcon className="h-6 w-6" />}
             </button>
         </Tooltip>
-        <Tooltip text="Customize Interface">
+        <Tooltip text={t('tooltipCustomizeInterface')}>
           <button 
             onClick={onOpenSettings}
             className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-200 dark:hover:bg-white/10 transition-colors duration-200"

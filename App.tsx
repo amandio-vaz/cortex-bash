@@ -10,7 +10,7 @@ import HistoryPanel from './components/HistoryPanel';
 import GithubPanel from './components/GithubPanel';
 import KnowledgeBaseView from './components/KnowledgeBaseView';
 import { ActiveView, ValidationIssue, ScriptHistoryEntry, GithubUser, Gist } from './types';
-import { analyzeScript, improveScript, generateScript, validateScript, executeScript } from './services/geminiService';
+import { analyzeScript, improveScript, generateScript, validateScript, executeScript, addDocstrings, optimizePerformance, checkSecurity } from './services/geminiService';
 import { getUser, getGistContent, createGist, updateGist } from './services/githubService';
 import { useLanguage } from './context/LanguageContext';
 import { useIconContext } from './context/IconContext';
@@ -322,6 +322,15 @@ const App: React.FC = () => {
     };
     handleApiCall(generateScript, promptToGenerate, 'generationTitle', true, onSuccess);
   };
+
+  const handleAddDocstrings = () => handleApiCall(addDocstrings, script, 'docstringsTitle', false, (response: string) => {
+      setScript(response);
+      setCurrentGistId(null);
+      setResult(`**${t('docstringsTitle')}**\n\n${t('docstringsSuccessMessage')}`);
+      setResultTitle(t('docstringsTitle'));
+  });
+  const handleOptimizePerformance = () => handleApiCall(optimizePerformance, script, 'optimizationTitle');
+  const handleCheckSecurity = () => handleApiCall(checkSecurity, script, 'securityTitle');
   
   const AssistantIcon = getIconComponent('assistantTab');
   const GeneratorIcon = getIconComponent('generatorTab');
@@ -382,6 +391,9 @@ const App: React.FC = () => {
             issues={validationIssues}
             isFullscreen={fullscreenView === 'editor'}
             onToggleFullscreen={() => handleToggleFullscreen('editor')}
+            onAddDocstrings={handleAddDocstrings}
+            onOptimizePerformance={handleOptimizePerformance}
+            onCheckSecurity={handleCheckSecurity}
           />
         </div>
         <div className={`

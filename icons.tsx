@@ -79,7 +79,7 @@ const SparklesIcon: React.FC<IconProps> = ({ className }) => (
   </svg>
 );
 
-const MagnifyingGlassIcon: React.FC<IconProps> = ({ className }) => (
+export const MagnifyingGlassIcon: React.FC<IconProps> = ({ className }) => (
   <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
   </svg>
@@ -153,7 +153,7 @@ const GearIcon: React.FC<IconProps> = ({ className }) => (
 
 const TerminalIcon: React.FC<IconProps> = ({ className }) => (
   <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 7.5A2.25 2.25 0 017.5 5.25h9a2.25 2.25 0 012.25 2.25v9a2.25 2.25 0 01-2.25 2.25h-9a2.25 2.25 0 01-2.25-2.25v-9z" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 7.5A2.25 2.25 0 017.5 5.25h9a2.25 2.25 0 012.25 2.25v9a2.25 2.25 0 01-2.25-2.25h-9a2.25 2.25 0 01-2.25-2.25v-9z" />
     <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 12h6m-3.75-2.25L9 12l1.75 2.25" />
   </svg>
 );
@@ -194,9 +194,25 @@ export const Squares2x2Icon: React.FC<IconProps> = ({ className }) => (
     </svg>
 );
 
+export const DocumentTextIcon: React.FC<IconProps> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+    </svg>
+);
 
-// FIX: Update the type of ICON_LIBRARY to include the 'settings' property via an intersection type.
-// This ensures the object matches its type definition and resolves downstream type errors.
+export const RocketLaunchIcon: React.FC<IconProps> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15.59 14.37a6 6 0 01-5.84 7.38v-4.82m5.84-2.56v4.82a6 6 0 01-1.12 3.51m-4.72-3.51a6 6 0 01-5.84-7.38m5.84 7.38L9 18m-3-3a6 6 0 01-5.84-7.38m5.84 7.38v-4.82m0 4.82l-3-1.732m3 1.732L6 18m6-12v4.82m0-4.82a6 6 0 011.12 3.51m-1.12-3.51a6 6 0 01-5.84 7.38m5.84-7.38L9 6m-3 3a6 6 0 01-5.84 7.38M3 9a6 6 0 015.84-7.38m-5.84 7.38L6 6" />
+    </svg>
+);
+
+export const FingerPrintIcon: React.FC<IconProps> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M7.864 4.243A7.5 7.5 0 0119.5 10.5c0 2.92-.556 5.709-1.588 8.188a15.015 15.015 0 01-3.413 4.213A15.015 15.015 0 0112 21.75c-2.676 0-5.223-.713-7.5-1.982A15.016 15.016 0 012.25 10.5a7.5 7.5 0 015.614-7.257z" />
+    </svg>
+);
+
+
 export const ICON_LIBRARY: Record<CustomizableAction, Record<string, React.FC<IconProps>>> & { settings: Record<string, React.FC<IconProps>> } = {
   analyze: {
     'Sparkles': SparklesIcon,
@@ -231,6 +247,15 @@ export const ICON_LIBRARY: Record<CustomizableAction, Record<string, React.FC<Ic
   generateAction: {
     'LightningBolt': LightningBoltIcon,
   },
+  addDocstrings: {
+    'DocumentText': DocumentTextIcon,
+  },
+  optimizePerformance: {
+    'RocketLaunch': RocketLaunchIcon,
+  },
+  checkSecurity: {
+    'FingerPrint': FingerPrintIcon,
+  },
   settings: {
     'Gear': GearIcon,
   }
@@ -246,4 +271,7 @@ export const DEFAULT_ICONS: Record<CustomizableAction, string> = {
     chatTab: 'Chat',
     knowledgeBaseTab: 'BookOpen',
     generateAction: 'LightningBolt',
+    addDocstrings: 'DocumentText',
+    optimizePerformance: 'RocketLaunch',
+    checkSecurity: 'FingerPrint',
 };

@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { useIconContext } from '../context/IconContext';
 import Tooltip from './Tooltip';
+import CommandPalette, { Command } from './CommandPalette';
 import { ValidationIssue } from '../types';
 import { ArrowsPointingOutIcon, ArrowsPointingInIcon, SaveIcon, HistoryIcon, ChevronDownIcon, ShieldExclamationIcon, ClipboardIcon, CheckCircleIcon, GithubIcon } from '../icons';
 import { useEditorTheme } from '../context/EditorThemeContext';
@@ -43,9 +44,12 @@ interface ScriptEditorProps {
   issues: ValidationIssue[];
   isFullscreen: boolean;
   onToggleFullscreen: () => void;
+  onAddDocstrings: () => void;
+  onOptimizePerformance: () => void;
+  onCheckSecurity: () => void;
 }
 
-const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, onAnalyze, onImprove, onValidate, onExecute, onAutoValidate, onToggleHistoryPanel, onToggleGithubPanel, isLoading, showSaveNotification, issues, isFullscreen, onToggleFullscreen }) => {
+const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, onAnalyze, onImprove, onValidate, onExecute, onAutoValidate, onToggleHistoryPanel, onToggleGithubPanel, isLoading, showSaveNotification, issues, isFullscreen, onToggleFullscreen, onAddDocstrings, onOptimizePerformance, onCheckSecurity }) => {
   const { t } = useLanguage();
   const { getIconComponent } = useIconContext();
   const { theme } = useEditorTheme();
@@ -55,6 +59,7 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, 
   const [scrollTop, setScrollTop] = useState(0);
   const [isExecuteMenuOpen, setIsExecuteMenuOpen] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+  const [isPaletteOpen, setIsPaletteOpen] = useState(false);
 
   const LINE_HEIGHT = 20;
   const PADDING_TOP = 12;
@@ -81,6 +86,17 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, 
     };
   }, []);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'p') {
+        e.preventDefault();
+        setIsPaletteOpen(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const handleScroll = () => {
     if (textareaRef.current) {
       setScrollTop(textareaRef.current.scrollTop);
@@ -97,6 +113,20 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, 
   const ValidateIcon = getIconComponent('validate');
   const ImproveIcon = getIconComponent('improve');
   const ExecuteIcon = getIconComponent('execute');
+  const AddDocstringsIcon = getIconComponent('addDocstrings');
+  const OptimizePerformanceIcon = getIconComponent('optimizePerformance');
+  const CheckSecurityIcon = getIconComponent('checkSecurity');
+
+  const commands = useMemo((): Command[] => [
+    { id: 'analyze', name: t('buttonAnalyze'), icon: <AnalyzeIcon />, action: onAnalyze, disabled: isLoading || !script },
+    { id: 'improve', name: t('buttonImprove'), icon: <ImproveIcon />, action: onImprove, disabled: isLoading || !script },
+    { id: 'validate', name: t('buttonValidate'), icon: <ValidateIcon />, action: onValidate, disabled: isLoading || !script },
+    { id: 'execute', name: t('buttonExecute'), icon: <ExecuteIcon />, action: () => onExecute(false), disabled: isLoading || !script },
+    { id: 'executeSudo', name: t('buttonRunWithSudo'), icon: <ShieldExclamationIcon />, action: () => onExecute(true), disabled: isLoading || !script },
+    { id: 'addDocstrings', name: t('buttonAddDocstrings'), icon: <AddDocstringsIcon />, action: onAddDocstrings, disabled: isLoading || !script },
+    { id: 'optimize', name: t('buttonOptimizePerformance'), icon: <OptimizePerformanceIcon />, action: onOptimizePerformance, disabled: isLoading || !script },
+    { id: 'security', name: t('buttonCheckSecurity'), icon: <CheckSecurityIcon />, action: onCheckSecurity, disabled: isLoading || !script },
+  ], [t, script, isLoading, onAnalyze, onImprove, onValidate, onExecute, onAddDocstrings, onOptimizePerformance, onCheckSecurity]);
 
   const highlightColors = {
       error: theme.colors.highlightError,
@@ -107,6 +137,11 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, 
   return (
     <div className="bg-white/60 dark:bg-black/20 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-xl flex flex-col h-full p-4 relative shadow-lg dark:shadow-2xl dark:shadow-black/20"
          style={{ backgroundColor: theme.isDark ? theme.colors.resultBg : undefined }}>
+      <CommandPalette
+        isOpen={isPaletteOpen}
+        onClose={() => setIsPaletteOpen(false)}
+        commands={commands}
+      />
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold" style={{ color: theme.colors.resultTitle }}>{t('editorTitle')}</h2>
         <Tooltip text={isFullscreen ? t('tooltipExitFullscreen') : t('tooltipEnterFullscreen')}>
@@ -279,6 +314,33 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, 
                 </div>
             )}
         </div>
+        <Tooltip text={t('tooltipAddDocstrings')}>
+          <button
+            onClick={onAddDocstrings}
+            disabled={isLoading || !script}
+            className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-blue-100 hover:bg-blue-200 text-blue-800 dark:text-white dark:bg-gradient-to-br dark:from-blue-500 dark:to-sky-500 dark:hover:from-blue-500 dark:hover:to-sky-500 focus:ring-4 focus:outline-none focus:ring-blue-200 dark:focus:ring-blue-800"
+          >
+            <AddDocstringsIcon className="h-5 w-5 mr-2" /> {t('buttonAddDocstrings')}
+          </button>
+        </Tooltip>
+        <Tooltip text={t('tooltipOptimizePerformance')}>
+          <button
+            onClick={onOptimizePerformance}
+            disabled={isLoading || !script}
+            className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-indigo-100 hover:bg-indigo-200 text-indigo-800 dark:text-white dark:bg-gradient-to-br dark:from-indigo-500 dark:to-violet-500 dark:hover:from-indigo-500 dark:hover:to-violet-500 focus:ring-4 focus:outline-none focus:ring-indigo-200 dark:focus:ring-indigo-800"
+          >
+            <OptimizePerformanceIcon className="h-5 w-5 mr-2" /> {t('buttonOptimizePerformance')}
+          </button>
+        </Tooltip>
+        <Tooltip text={t('tooltipCheckSecurity')}>
+          <button
+            onClick={onCheckSecurity}
+            disabled={isLoading || !script}
+            className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-red-100 hover:bg-red-200 text-red-800 dark:text-white dark:bg-gradient-to-br dark:from-red-500 dark:to-pink-500 dark:hover:from-red-500 dark:hover:to-pink-500 focus:ring-4 focus:outline-none focus:ring-red-200 dark:focus:ring-red-800"
+          >
+            <CheckSecurityIcon className="h-5 w-5 mr-2" /> {t('buttonCheckSecurity')}
+          </button>
+        </Tooltip>
         <Tooltip text={t('tooltipAnalyze')}>
           <button
             onClick={onAnalyze}

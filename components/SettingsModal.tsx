@@ -1,7 +1,6 @@
 import React from 'react';
 import { useIconContext } from '../context/IconContext';
 import { ICON_LIBRARY } from '../icons';
-// FIX: Import EditorTheme to explicitly type theme objects and resolve type errors.
 import { CustomizableAction, EditorTheme } from '../types';
 import { useEditorTheme } from '../context/EditorThemeContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -21,6 +20,9 @@ const actionLabels: Record<CustomizableAction, string> = {
     chatTab: 'Chat Tab',
     knowledgeBaseTab: 'Knowledge Base Tab',
     generateAction: 'Generate Button',
+    addDocstrings: 'Add Docs Button',
+    optimizePerformance: 'Optimize Button',
+    checkSecurity: 'Security Check Button',
 };
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
@@ -42,7 +44,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
         onClick={e => e.stopPropagation()}
       >
         <header className="p-4 border-b border-gray-300 dark:border-white/10 flex justify-between items-center">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Customize Interface</h2>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{t('settingsTitle')}</h2>
           <button onClick={onClose} className="p-1 rounded-full text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-200 dark:hover:bg-white/10">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -56,9 +58,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
             <h3 className="text-lg font-medium text-purple-600 dark:text-purple-400 mb-3">{t('settingsThemeTitle')}</h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               {Object.values(availableThemes)
-                // FIX: Explicitly type `t` as EditorTheme to allow safe access to `t.name`.
                 .filter((t: EditorTheme) => !t.name.includes('Dark'))
-                // FIX: Explicitly type `themeOption` as EditorTheme to resolve multiple type errors.
                 .map((themeOption: EditorTheme) => {
                 const isSelected = currentThemeName === themeOption.name;
                 const themeKey = Object.keys(availableThemes).find(key => availableThemes[key].name === themeOption.name) || 'default';
