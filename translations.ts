@@ -71,6 +71,7 @@ export const translations: { [key:string]: { [key: string]: string } } = {
     validationIssueLine: 'Line {line}',
     validationSucceededWithIssuesTitle: 'Validation Report',
     validationSucceededWithIssuesHeader: 'The generated script is valid and will be loaded, but has the following warnings or suggestions for improvement:',
+    generationValidAndLoaded: 'The valid script was loaded into the editor.',
     tooltipEnterFullscreen: 'Enter Fullscreen',
     tooltipExitFullscreen: 'Exit Fullscreen',
     tooltipCopyAll: 'Copy all content',
@@ -151,6 +152,7 @@ export const translations: { [key:string]: { [key: string]: string } } = {
     githubGistCancelButton: 'Cancel',
     githubGistLastUpdated: 'Last updated',
     tooltipSyncGist: 'Save changes to the currently loaded Gist.',
+    gistUpdateSuccessNotification: 'Gist updated successfully.',
     // Command Palette
     commandPaletteTitle: 'Command Palette',
     commandPalettePlaceholder: 'Type a command to run...',
@@ -307,6 +309,7 @@ export const translations: { [key:string]: { [key: string]: string } } = {
     validationIssueLine: 'Linha {line}',
     validationSucceededWithIssuesTitle: 'Relatório de Validação',
     validationSucceededWithIssuesHeader: 'O script gerado é válido e será carregado, mas possui os seguintes avisos ou sugestões de melhoria:',
+    generationValidAndLoaded: 'O script válido foi carregado no editor.',
     tooltipEnterFullscreen: 'Entrar em Tela Cheia',
     tooltipExitFullscreen: 'Sair da Tela Cheia',
     tooltipCopyAll: 'Copiar todo o conteúdo',
@@ -387,6 +390,7 @@ export const translations: { [key:string]: { [key: string]: string } } = {
     githubGistCancelButton: 'Cancelar',
     githubGistLastUpdated: 'Última atualização',
     tooltipSyncGist: 'Salvar alterações no Gist atualmente carregado.',
+    gistUpdateSuccessNotification: 'Gist atualizado com sucesso.',
     // Paleta de Comandos
     commandPaletteTitle: 'Paleta de Comandos',
     commandPalettePlaceholder: 'Digite um comando para executar...',

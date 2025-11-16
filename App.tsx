@@ -101,7 +101,7 @@ const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isThinking, setIsThinking] = useState<boolean>(false);
   const [activeView, setActiveView] = useState<ActiveView>(ActiveView.Assistant);
-  const [showSaveNotification, setShowSaveNotification] = useState<boolean>(false);
+  const [notificationMessage, setNotificationMessage] = useState<string | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
   const [isHistoryPanelOpen, setIsHistoryPanelOpen] = useState<boolean>(false);
   const [isGithubPanelOpen, setIsGithubPanelOpen] = useState<boolean>(false);
@@ -121,6 +121,16 @@ const App: React.FC = () => {
   useEffect(() => {
     scriptRef.current = script;
   }, [script]);
+
+  // Handle notification timeouts
+  useEffect(() => {
+    if (notificationMessage) {
+      const timer = setTimeout(() => {
+        setNotificationMessage(null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [notificationMessage]);
 
   // Load data from localStorage on initial render
   useEffect(() => {
@@ -149,10 +159,7 @@ const App: React.FC = () => {
   
   const handleSaveScript = useCallback(() => {
     localStorage.setItem('bashstudio-script', script);
-    setShowSaveNotification(true);
-    setTimeout(() => {
-      setShowSaveNotification(false);
-    }, 2000);
+    setNotificationMessage(t('saveNotification'));
     
     // Update history
     setScriptHistory(prevHistory => {
@@ -165,7 +172,7 @@ const App: React.FC = () => {
         return updatedHistory;
     });
 
-  }, [script]);
+  }, [script, t]);
 
   // Keyboard shortcuts for save, undo, redo
   useEffect(() => {
@@ -269,7 +276,7 @@ const App: React.FC = () => {
     try {
       const newGist = await createGist(description, filename, script, isPublic, githubToken);
       setCurrentGistId(newGist.id);
-      // Optional: show a success message
+      setNotificationMessage(t('gistUpdateSuccessNotification'));
     } catch(error) {
       console.error("Failed to create Gist:", error);
     }
@@ -279,7 +286,7 @@ const App: React.FC = () => {
     if (!githubToken || !script || !currentGistId) return;
     try {
         await updateGist(currentGistId, script, githubToken);
-        // Optional: show a success message
+        setNotificationMessage(t('gistUpdateSuccessNotification'));
     } catch (error) {
         console.error("Failed to update Gist:", error);
     }
@@ -408,11 +415,10 @@ const App: React.FC = () => {
         if (validation.isValid) {
           resetScript(extractedScript);
           setCurrentGistId(null);
-          const successMsg = validation.issues.length === 0 ? `**${t('validationPassedMessage')}**\n\n` : '';
+          const successMsg = validation.issues.length === 0 ? `**${t('validationPassedMessage')}**\n\n${t('generationValidAndLoaded')}` : `**${t('generationValidAndLoaded')}**`;
           setResult(successMsg + report + genResponse);
           setResultTitle(t('generationTitle'));
         } else {
-          setValidationIssues(validation.issues);
           setResult(report + genResponse);
           setResultTitle(t('validationFailedTitle'));
         }
@@ -493,13 +499,16 @@ const App: React.FC = () => {
             onToggleHistoryPanel={() => setIsHistoryPanelOpen(true)}
             onToggleGithubPanel={() => setIsGithubPanelOpen(true)}
             isLoading={isLoading}
-            showSaveNotification={showSaveNotification}
+            notificationMessage={notificationMessage}
             issues={validationIssues}
             isFullscreen={fullscreenView === 'editor'}
             onToggleFullscreen={() => handleToggleFullscreen('editor')}
             onAddDocstrings={handleAddDocstrings}
             onOptimizePerformance={handleOptimizePerformance}
             onCheckSecurity={handleCheckSecurity}
+            githubUser={githubUser}
+            currentGistId={currentGistId}
+            onUpdateGist={handleUpdateGist}
           />
         </div>
         <div className={`
