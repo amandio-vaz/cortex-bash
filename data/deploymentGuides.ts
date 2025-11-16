@@ -367,5 +367,43 @@ export const DEPLOYMENT_GUIDES_DATA: Record<string, DeploymentCategory> = {
         ]
       }
     ]
+  },
+  npm: {
+    displayName: 'deploymentGuidesCategoryNpm',
+    guides: [
+      {
+        title: 'NVM + Node.js & NPM',
+        description: 'Instala o Node.js e o NPM da forma correta usando o NVM (Node Version Manager). Esta é a melhor prática pois permite gerenciar múltiplas versões do Node sem a necessidade de `sudo`, evitando problemas de permissão e facilitando a troca de versão por projeto.',
+        useCase: 'Essencial para qualquer desenvolvedor JavaScript/TypeScript. Permite criar, construir e executar aplicações web, back-ends, ferramentas de linha de comando e muito mais.',
+        steps: [
+          { command: 'curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash', description: 'Baixa e executa o script de instalação do NVM.' },
+          { command: 'export NVM_DIR="$HOME/.nvm"', description: 'Define a variável de ambiente para o NVM (adicione ao seu .bashrc/.zshrc).'},
+          { command: '[ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh"', description: 'Carrega o NVM na sessão atual do shell (adicione também ao .bashrc/.zshrc).'},
+          { command: 'source ~/.bashrc', description: 'Recarrega o arquivo de configuração do shell para aplicar as mudanças.'},
+          { command: 'nvm install --lts', description: 'Instala a versão mais recente de Suporte de Longo Prazo (LTS) do Node.js, que inclui o NPM.'},
+          { command: 'node -v && npm -v', description: 'Verifica se a instalação foi bem-sucedida exibindo as versões.'},
+        ],
+      },
+      {
+        title: 'Vercel CLI',
+        description: 'Instala a Vercel CLI, a interface de linha de comando para a plataforma Vercel, otimizada para frameworks de frontend e serverless functions.',
+        useCase: 'Permite fazer deploy de projetos, gerenciar domínios, variáveis de ambiente e logs diretamente do terminal. Indispensável para o fluxo de trabalho de qualquer desenvolvedor que usa a Vercel.',
+        steps: [
+          { command: 'npm install -g vercel', description: 'Instala a CLI da Vercel globalmente usando NPM.' },
+          { command: 'vercel --version', description: 'Verifica a instalação.' },
+          { command: 'vercel login', description: 'Autentica sua conta da Vercel.' },
+        ],
+      },
+      {
+        title: 'Redis CLI',
+        description: 'Instala o `redis-cli`, a interface de linha de comando oficial para interagir com servidores Redis. Redis é um banco de dados em memória de alto desempenho.',
+        useCase: 'Conveniente para desenvolvedores que precisam se conectar a um servidor Redis (local ou remoto) para depurar, inspecionar chaves, executar comandos ou monitorar a performance, sem precisar instalar o pacote completo do servidor Redis.',
+        steps: [
+          { command: 'npm install -g redis-cli', description: 'Instala o pacote redis-cli globalmente.' },
+          { command: 'redis-cli --version', description: 'Verifica se a CLI foi instalada corretamente.' },
+          { command: 'redis-cli -h <host> -p <porta> PING', description: 'Exemplo de como conectar a um servidor e testar a conexão.' },
+        ],
+      },
+    ]
   }
 };

@@ -126,6 +126,11 @@ export const validateScript = async (script: string): Promise<ValidationResult> 
 - **Security Vulnerabilities**:
   - Find common security risks like command injection, unquoted variables in sensitive contexts, or unsafe use of temp files (severity: 'error' or 'warning').
 
+- **Portability & Case Sensitivity**:
+  - Detect inconsistent casing in file paths (e.g., referencing "/path/to/MyFile" and later "/path/to/myfile"). This is a bug on case-sensitive filesystems (severity: 'warning').
+  - Identify shell commands or built-ins called with incorrect capitalization (e.g., \`Grep\` instead of \`grep\`). Commands are case-sensitive (severity: 'error').
+  - Check for variables that are referenced with different casing (e.g., setting \`myVar\` but reading \`myvar\`). This can lead to unexpected behavior (severity: 'warning').
+
 - **Best Practices & Code Quality**:
   - Identify unused variables that are declared but never read (severity: 'warning').
   - Suggest improvements for clarity and maintainability.
