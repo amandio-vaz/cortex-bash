@@ -95,6 +95,7 @@ export interface EditorTheme {
   isDark: boolean;
   colors: {
     editorBg: string;
+    editorGutterBg: string;
     editorText: string;
     lineNumbers: string;
     resultBg: string;

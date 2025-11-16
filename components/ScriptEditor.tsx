@@ -122,8 +122,12 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, 
       <div className="w-full flex-grow relative flex border border-gray-300 dark:border-white/10 rounded-md overflow-hidden focus-within:ring-2 focus-within:ring-cyan-500/50 transition-shadow"
            style={{ backgroundColor: theme.colors.editorBg }}>
         <div
-          className="p-3 pr-2 text-right font-mono text-sm select-none z-10"
-          style={{ lineHeight: `${LINE_HEIGHT}px`, color: theme.colors.lineNumbers, backgroundColor: 'rgba(0,0,0,0.05)' }}
+          className="p-3 pr-2 text-right font-mono text-sm select-none z-10 border-r border-gray-300 dark:border-white/10"
+          style={{
+            lineHeight: `${LINE_HEIGHT}px`,
+            color: theme.colors.lineNumbers,
+            backgroundColor: theme.colors.editorGutterBg,
+          }}
           aria-hidden="true"
         >
           <div style={{ transform: `translateY(-${scrollTop}px)` }}>

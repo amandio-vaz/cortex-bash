@@ -25,10 +25,6 @@ const App: React.FC = () => {
     const savedScript = localStorage.getItem('bashstudio-script');
     return savedScript || '#!/bin/bash\n\n# Bem-vindo ao BashStudio!\n# Escreva seu script aqui ou descreva um para ser gerado.\n\necho "Olá, Mundo!"';
   });
-  const [generatorPrompt, setGeneratorPrompt] = useState<string>(() => {
-    const savedPrompt = localStorage.getItem('bashstudio-generator-prompt');
-    return savedPrompt || 'Crie um script que lista todos os arquivos no diretório atual e os ordena por tamanho.';
-  });
   const [result, setResult] = useState<string>('');
   const [resultTitle, setResultTitle] = useState<string>(t('tabAssistant'));
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -54,11 +50,6 @@ const App: React.FC = () => {
   useEffect(() => {
     scriptRef.current = script;
   }, [script]);
-
-  const generatorPromptRef = useRef(generatorPrompt);
-  useEffect(() => {
-    generatorPromptRef.current = generatorPrompt;
-  }, [generatorPrompt]);
 
   // Load data from localStorage on initial render
   useEffect(() => {
@@ -120,15 +111,6 @@ const App: React.FC = () => {
     }, 30000);
     return () => clearInterval(autoSaveInterval);
   }, [handleSaveScript]);
-
-  useEffect(() => {
-    const autoSaveInterval = setInterval(() => {
-        if (generatorPromptRef.current) {
-            localStorage.setItem('bashstudio-generator-prompt', generatorPromptRef.current);
-        }
-    }, 30000);
-    return () => clearInterval(autoSaveInterval);
-  }, []);
 
   useEffect(() => {
     if (tabContainerRef.current) {
@@ -305,7 +287,7 @@ const App: React.FC = () => {
     }
   };
 
-  const handleGenerate = () => {
+  const handleGenerate = (promptToGenerate: string) => {
     const onSuccess = async (genResponse: string) => {
       const match = genResponse.match(/```bash([\s\S]*?)```/);
       if (match?.[1]) {
@@ -338,7 +320,7 @@ const App: React.FC = () => {
         setResultTitle(t('generationTitle'));
       }
     };
-    handleApiCall(generateScript, generatorPrompt, 'generationTitle', true, onSuccess);
+    handleApiCall(generateScript, promptToGenerate, 'generationTitle', true, onSuccess);
   };
   
   const AssistantIcon = getIconComponent('assistantTab');
@@ -362,8 +344,6 @@ const App: React.FC = () => {
       case ActiveView.Generator:
         return (
           <GeneratorView
-            prompt={generatorPrompt}
-            setPrompt={setGeneratorPrompt}
             onGenerate={handleGenerate}
             isLoading={isLoading}
           />

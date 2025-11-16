@@ -1,4 +1,4 @@
-export const translations: { [key: string]: { [key: string]: string } } = {
+export const translations: { [key:string]: { [key: string]: string } } = {
   en: {
     headerTitle: 'Cortex BashStudio',
     headerSubtitle: 'Bash Script Generation, Analysis, and Validation in the Agentic Era',
@@ -81,6 +81,12 @@ export const translations: { [key: string]: { [key: string]: string } } = {
     template_portScan_desc: 'Checks for open TCP ports on a given host using netcat.',
     template_organizeFiles_name: 'Organize Files by Type',
     template_organizeFiles_desc: 'Moves files into subdirectories based on their file extension.',
+    template_category_all: 'All',
+    template_category_file: 'File',
+    template_category_system: 'System',
+    template_category_network: 'Network',
+    template_category_utility: 'Utility',
+    template_noTemplatesFound: 'No templates found in this category.',
     tooltipThemeLight: 'Switch to Light Mode',
     tooltipThemeDark: 'Switch to Dark Mode',
     settingsThemeTitle: 'Editor Theme',
@@ -208,6 +214,12 @@ export const translations: { [key: string]: { [key: string]: string } } = {
     template_portScan_desc: 'Verifica portas TCP abertas em um host usando netcat.',
     template_organizeFiles_name: 'Organizar Arquivos por Tipo',
     template_organizeFiles_desc: 'Move arquivos para subdiretórios com base na extensão do arquivo.',
+    template_category_all: 'Todos',
+    template_category_file: 'Arquivo',
+    template_category_system: 'Sistema',
+    template_category_network: 'Rede',
+    template_category_utility: 'Utilitário',
+    template_noTemplatesFound: 'Nenhum template encontrado nesta categoria.',
     tooltipThemeLight: 'Mudar para Modo Claro',
     tooltipThemeDark: 'Mudar para Modo Escuro',
     settingsThemeTitle: 'Tema do Editor',

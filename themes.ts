@@ -6,6 +6,7 @@ export const EDITOR_THEMES: Record<string, EditorTheme> = {
     isDark: false,
     colors: {
       editorBg: '#F9FAFB', // gray-50
+      editorGutterBg: '#F9FAFB',
       editorText: '#111827', // gray-900
       lineNumbers: '#9CA3AF', // gray-400
       resultBg: '#FFFFFF',
@@ -24,6 +25,7 @@ export const EDITOR_THEMES: Record<string, EditorTheme> = {
     isDark: true,
     colors: {
       editorBg: '#0f172a', // slate-900
+      editorGutterBg: '#0f172a',
       editorText: '#E2E8F0', // slate-200
       lineNumbers: '#475569', // slate-600
       resultBg: '#020617', // slate-950
@@ -42,6 +44,7 @@ export const EDITOR_THEMES: Record<string, EditorTheme> = {
     isDark: true,
     colors: {
       editorBg: '#272822',
+      editorGutterBg: '#272822',
       editorText: '#F8F8F2',
       lineNumbers: '#75715E',
       resultBg: '#20211C',
@@ -60,6 +63,7 @@ export const EDITOR_THEMES: Record<string, EditorTheme> = {
     isDark: true,
     colors: {
       editorBg: '#002b36',
+      editorGutterBg: '#002b36',
       editorText: '#839496',
       lineNumbers: '#586e75',
       resultBg: '#00212b',
@@ -78,6 +82,7 @@ export const EDITOR_THEMES: Record<string, EditorTheme> = {
     isDark: true,
     colors: {
       editorBg: '#282a36',
+      editorGutterBg: '#282a36',
       editorText: '#f8f8f2',
       lineNumbers: '#6272a4',
       resultBg: '#21222C',

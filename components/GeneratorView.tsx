@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { useIconContext } from '../context/IconContext';
 import Tooltip from './Tooltip';
@@ -6,17 +6,34 @@ import TemplateSelector from './TemplateSelector';
 import { useEditorTheme } from '../context/EditorThemeContext';
 
 interface GeneratorViewProps {
-  prompt: string;
-  setPrompt: (prompt: string) => void;
-  onGenerate: () => void;
+  onGenerate: (prompt: string) => void;
   isLoading: boolean;
 }
 
-const GeneratorView: React.FC<GeneratorViewProps> = ({ prompt, setPrompt, onGenerate, isLoading }) => {
+const GeneratorView: React.FC<GeneratorViewProps> = ({ onGenerate, isLoading }) => {
   const { t } = useLanguage();
   const { getIconComponent } = useIconContext();
   const { theme } = useEditorTheme();
   const GenerateIcon = getIconComponent('generateAction');
+
+  const [prompt, setPrompt] = useState<string>(() => {
+    const savedPrompt = localStorage.getItem('bashstudio-generator-prompt');
+    return savedPrompt || 'Crie um script que lista todos os arquivos no diretório atual e os ordena por tamanho.';
+  });
+
+  const promptRef = useRef(prompt);
+  useEffect(() => {
+    promptRef.current = prompt;
+  }, [prompt]);
+
+  useEffect(() => {
+    const autoSaveInterval = setInterval(() => {
+      if (promptRef.current) {
+        localStorage.setItem('bashstudio-generator-prompt', promptRef.current);
+      }
+    }, 30000);
+    return () => clearInterval(autoSaveInterval);
+  }, []);
 
   const handleSelectTemplate = (templatePrompt: string) => {
     setPrompt(templatePrompt);
@@ -39,7 +56,7 @@ const GeneratorView: React.FC<GeneratorViewProps> = ({ prompt, setPrompt, onGene
       <div className="mt-4">
         <Tooltip text={t('tooltipGenerateFromPrompt')}>
           <button
-            onClick={onGenerate}
+            onClick={() => onGenerate(prompt)}
             disabled={isLoading || !prompt.trim()}
             className="w-full relative inline-flex items-center justify-center px-4 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-500 hover:to-indigo-500 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed transition-all duration-300 shadow-lg shadow-purple-500/20 hover:shadow-xl hover:shadow-purple-500/30 focus:outline-none focus:ring-4 focus:ring-purple-500/50"
           >

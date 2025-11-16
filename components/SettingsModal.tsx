@@ -1,7 +1,8 @@
 import React from 'react';
 import { useIconContext } from '../context/IconContext';
 import { ICON_LIBRARY } from '../icons';
-import { CustomizableAction } from '../types';
+// FIX: Import EditorTheme to explicitly type theme objects and resolve type errors.
+import { CustomizableAction, EditorTheme } from '../types';
 import { useEditorTheme } from '../context/EditorThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -55,8 +56,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
             <h3 className="text-lg font-medium text-purple-600 dark:text-purple-400 mb-3">{t('settingsThemeTitle')}</h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               {Object.values(availableThemes)
-                .filter(t => !t.name.includes('Dark'))
-                .map(themeOption => {
+                // FIX: Explicitly type `t` as EditorTheme to allow safe access to `t.name`.
+                .filter((t: EditorTheme) => !t.name.includes('Dark'))
+                // FIX: Explicitly type `themeOption` as EditorTheme to resolve multiple type errors.
+                .map((themeOption: EditorTheme) => {
                 const isSelected = currentThemeName === themeOption.name;
                 const themeKey = Object.keys(availableThemes).find(key => availableThemes[key].name === themeOption.name) || 'default';
                 
