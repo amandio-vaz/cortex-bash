@@ -130,6 +130,10 @@ export const translations: { [key:string]: { [key: string]: string } } = {
     knowledgeBaseHeaderDescription: 'Description',
     knowledgeBaseHeaderExample: 'Example',
     knowledgeBaseNoResults: 'No commands found matching "{searchTerm}".',
+    knowledgeBaseCategoryVercel: 'Vercel CLI',
+    knowledgeBaseCategoryNpm: 'NPM',
+    knowledgeBaseCategoryHuggingface: 'Hugging Face CLI',
+    knowledgeBaseCategoryKubernetes: 'Kubernetes',
     // GitHub Integration
     tooltipGithub: 'Manage GitHub Gist integration.',
     githubTitle: 'GitHub Gist Integration',
@@ -497,6 +501,10 @@ export const translations: { [key:string]: { [key: string]: string } } = {
     knowledgeBaseHeaderDescription: 'Descrição',
     knowledgeBaseHeaderExample: 'Exemplo',
     knowledgeBaseNoResults: 'Nenhum comando encontrado para "{searchTerm}".',
+    knowledgeBaseCategoryVercel: 'Vercel CLI',
+    knowledgeBaseCategoryNpm: 'NPM',
+    knowledgeBaseCategoryHuggingface: 'Hugging Face CLI',
+    knowledgeBaseCategoryKubernetes: 'Kubernetes',
     // Integração GitHub
     tooltipGithub: 'Gerenciar integração com GitHub Gists.',
     githubTitle: 'Integração com GitHub Gist',
