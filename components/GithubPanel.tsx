@@ -18,11 +18,13 @@ interface GithubPanelProps {
   currentGistId: string | null;
 }
 
-const SaveGistModal: React.FC<{
+interface SaveGistModalProps {
     onClose: () => void;
     onSave: (description: string, isPublic: boolean) => void;
     isSaving: boolean;
-}> = ({ onClose, onSave, isSaving }) => {
+}
+
+const SaveGistModal: React.FC<SaveGistModalProps> = ({ onClose, onSave, isSaving }) => {
     const { t } = useLanguage();
     const [description, setDescription] = useState('');
     const [isPublic, setIsPublic] = useState(false);
@@ -153,46 +155,64 @@ const GithubPanel: React.FC<GithubPanelProps> = ({ isOpen, onClose, token, user,
                 <img src={user.avatar_url} alt={user.login} className="h-10 w-10 rounded-full mr-3" />
                 <div>
                   <p className="text-sm text-gray-500 dark:text-gray-400">{t('githubConnectedAs')}</p>
-                  <a href={user.html_url} target="_blank" rel="noopener noreferrer" className="font-semibold text-gray-900 dark:text-white hover:underline">{user.login}</a>
+                  <p className="font-semibold text-gray-900 dark:text-gray-100">{user.login}</p>
                 </div>
               </div>
-              <button onClick={onLogout} className="text-sm px-3 py-1 rounded-md text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600">{t('githubLogout')}</button>
+              <button onClick={onLogout} className="text-sm text-red-600 dark:text-red-400 hover:underline">{t('githubLogout')}</button>
             </div>
-            <div className="p-4 flex-shrink-0">
-                <div className="flex gap-2">
-                    <button onClick={() => setIsSaveModalOpen(true)} disabled={!currentScript} className="flex-1 px-4 py-2 text-sm rounded-md text-white bg-green-600 hover:bg-green-700 disabled:bg-gray-400">{t('githubSaveNewGist')}</button>
-                    <button onClick={onUpdateGist} disabled={!currentGistId} className="flex-1 px-4 py-2 text-sm rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400">{t('githubUpdateGist')}</button>
-                </div>
-                <input
-                    type="text"
-                    placeholder={t('githubGistSearchPlaceholder')}
-                    value={searchTerm}
-                    onChange={e => setSearchTerm(e.target.value)}
-                    className="mt-4 w-full bg-gray-100 dark:bg-slate-900/50 p-2 rounded-md border border-gray-300 dark:border-white/10 focus:ring-2 focus:ring-cyan-500/50"
-                />
-            </div>
-            <div className="px-6 pb-6 flex-grow overflow-y-auto">
+            <div className="p-4 flex-grow overflow-y-auto">
+              <h3 className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-200">{t('githubYourGists')}</h3>
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                placeholder={t('githubGistSearchPlaceholder')}
+                className="w-full bg-gray-100/50 dark:bg-slate-800/50 p-2 rounded-md border border-gray-300 dark:border-white/10 focus:ring-2 focus:ring-cyan-500/50 mb-4"
+              />
               {isGistLoading ? (
-                <p className="text-center text-gray-500 dark:text-gray-400">Loading Gists...</p>
-              ) : filteredGists.length === 0 ? (
-                <p className="text-center text-gray-500 dark:text-gray-400">{t('githubNoGists')}</p>
-              ) : (
-                <ul className="space-y-3">
+                <div className="text-center py-10 text-gray-500">Loading gists...</div>
+              ) : filteredGists.length > 0 ? (
+                <ul className="space-y-2">
                   {filteredGists.map(gist => (
                     <li key={gist.id} className="bg-gray-50 dark:bg-slate-800/50 p-3 rounded-lg border border-gray-200 dark:border-white/10 flex justify-between items-center">
                       <div>
-                        <a href={gist.html_url} target="_blank" rel="noopener noreferrer" className="font-medium text-cyan-700 dark:text-cyan-400 hover:underline">{gist.description || Object.keys(gist.files)[0]}</a>
+                        <p className="font-semibold text-gray-900 dark:text-gray-100">{gist.description || Object.keys(gist.files)[0]}</p>
                         <p className="text-xs text-gray-500 dark:text-gray-400">{t('githubGistLastUpdated')}: {formatUpdateDate(gist.updated_at)}</p>
                       </div>
-                      <button onClick={() => onLoadGist(gist)} className="px-3 py-1 text-xs font-semibold rounded-md bg-cyan-100 hover:bg-cyan-200 text-cyan-800 dark:text-white dark:bg-gradient-to-br dark:from-cyan-500 dark:to-blue-500">{t('githubLoadGist')}</button>
+                      <button onClick={() => onLoadGist(gist)} className="px-3 py-1 text-xs font-semibold rounded-md bg-cyan-100 text-cyan-800 hover:bg-cyan-200 dark:bg-cyan-500/20 dark:text-cyan-300 dark:hover:bg-cyan-500/30">
+                        {t('githubLoadGist')}
+                      </button>
                     </li>
                   ))}
                 </ul>
+              ) : (
+                <div className="text-center py-10 text-gray-500">{t('githubNoGists')}</div>
               )}
             </div>
+            <footer className="p-4 border-t border-gray-300 dark:border-white/10 flex-shrink-0 flex items-center justify-end space-x-2">
+              <button
+                onClick={onUpdateGist}
+                disabled={!currentGistId}
+                className="px-4 py-2 text-sm rounded-md text-gray-700 dark:text-gray-200 bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {t('githubUpdateGist')}
+              </button>
+              <button
+                onClick={() => setIsSaveModalOpen(true)}
+                className="px-4 py-2 text-sm rounded-md text-white bg-purple-600 hover:bg-purple-700"
+              >
+                {t('githubSaveNewGist')}
+              </button>
+            </footer>
+            {isSaveModalOpen && (
+              <SaveGistModal
+                onClose={() => setIsSaveModalOpen(false)}
+                onSave={handleSave}
+                isSaving={isLoading}
+              />
+            )}
           </div>
         )}
-        {isSaveModalOpen && <SaveGistModal onClose={() => setIsSaveModalOpen(false)} onSave={handleSave} isSaving={isLoading} />}
       </div>
     </div>
   );

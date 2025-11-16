@@ -2,7 +2,7 @@ import { GithubUser, Gist } from '../types';
 
 const API_BASE_URL = 'https://api.github.com';
 
-const makeRequest = async (endpoint: string, token: string, options: RequestInit = {}) => {
+const makeRequest = async (endpoint: string, token: string, options: RequestInit = {}): Promise<any> => {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         ...options,
         headers: {
@@ -48,21 +48,20 @@ export const createGist = (description: string, filename: string, content: strin
     });
 };
 
-export const updateGist = (gistId: string, content: string, token: string): Promise<Gist> => {
+export const updateGist = async (gistId: string, content: string, token: string): Promise<Gist> => {
     // We need to know the original filename to update it.
     // For simplicity in this app, we'll fetch the gist first to get the filename.
     // A more optimized approach might store the filename when the gist is loaded.
-    return makeRequest(`/gists/${gistId}`, token).then(gist => {
-        const filename = Object.keys(gist.files)[0];
-        if (!filename) throw new Error('Cannot update a Gist with no files.');
+    const gist: Gist = await makeRequest(`/gists/${gistId}`, token);
+    const filename = Object.keys(gist.files)[0];
+    if (!filename) throw new Error('Cannot update a Gist with no files.');
 
-        return makeRequest(`/gists/${gistId}`, token, {
-            method: 'PATCH',
-            body: JSON.stringify({
-                files: {
-                    [filename]: { content },
-                },
-            }),
-        });
+    return makeRequest(`/gists/${gistId}`, token, {
+        method: 'PATCH',
+        body: JSON.stringify({
+            files: {
+                [filename]: { content },
+            },
+        }),
     });
 };
