@@ -4,7 +4,7 @@
 
 ## Execute e implamente o App
 
-- Contém tudo o que você precisa para executar seu aplicativo localmente.
+- Contém tudo o que você precisa para executar o aplicativo localmente.
 
 ---
 
