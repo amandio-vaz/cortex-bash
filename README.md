@@ -2,7 +2,7 @@
 
 <div align="center"></div>
 
-## Execute e implamente o App
+## Execute e implemente o App
 
 - Contém tudo o que você precisa para executar o aplicativo localmente.
 
