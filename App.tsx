@@ -427,7 +427,8 @@ const App: React.FC = () => {
   const handleAddDocstrings = () => handleApiCall(addDocstrings, script, 'docstringsTitle', false, (response: string) => {
       resetScript(response);
       setCurrentGistId(null);
-      setResult(`**${t('docstringsTitle')}**\n\n${t('docstringsSuccessMessage')}`);
+      const resultMessage = `**${t('docstringsTitle')}**\n\n${t('docstringsSuccessMessage')}\n\n\`\`\`bash\n${response}\n\`\`\``;
+      setResult(resultMessage);
       setResultTitle(t('docstringsTitle'));
   });
   const handleOptimizePerformance = () => handleApiCall(optimizePerformance, script, 'optimizationTitle');
@@ -572,8 +573,11 @@ const App: React.FC = () => {
         currentScript={script}
         currentGistId={currentGistId}
       />
-      <footer className="text-center py-4 text-xs text-gray-400 dark:text-gray-600">
-        Desenvolvido com ❤️ por Amândio Vaz - 2025
+      <footer className="py-3 px-6 text-xs text-gray-500 dark:text-gray-500 flex justify-between items-center border-t border-gray-200 dark:border-white/10">
+        <span>Desenvolvido com ❤️ por Amândio Vaz - 2025</span>
+        <div className="bg-gray-100 dark:bg-slate-800/60 text-gray-600 dark:text-gray-400 px-2.5 py-1 rounded-full font-mono tracking-wider">
+          Release: v1.0
+        </div>
       </footer>
     </div>
   );

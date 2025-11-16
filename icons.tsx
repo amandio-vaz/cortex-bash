@@ -85,6 +85,12 @@ export const ShieldExclamationIcon: React.FC<IconProps> = ({ className }) => (
     </svg>
 );
 
+export const CommandLineIcon: React.FC<IconProps> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="m6.75 7.5 3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0 0 21 18V6a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6v12a2.25 2.25 0 0 0 2.25 2.25Z" />
+    </svg>
+);
+
 const SparklesIcon: React.FC<IconProps> = ({ className }) => (
   <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 20 20" fill="currentColor">
     <path fillRule="evenodd" d="M10 3a1 1 0 011 1v2.586l1.293-1.293a1 1 0 111.414 1.414L12.414 8l1.293 1.293a1 1 0 11-1.414 1.414L11 9.414V12a1 1 0 11-2 0V9.414l-1.293 1.293a1 1 0 01-1.414-1.414L7.586 8 6.293 6.707a1 1 0 011.414-1.414L9 6.586V4a1 1 0 011-1zM3 10a1 1 0 011-1h2.586l-1.293-1.293a1 1 0 111.414-1.414L8 7.586l1.293-1.293a1 1 0 111.414 1.414L9.414 9H12a1 1 0 110 2H9.414l1.293 1.293a1 1 0 01-1.414 1.414L8 12.414l-1.293 1.293a1 1 0 01-1.414-1.414L6.586 11H4a1 1 0 01-1-1z" clipRule="evenodd" />
@@ -240,6 +246,7 @@ export const ICON_LIBRARY: Record<CustomizableAction, Record<string, React.FC<Ic
   },
   execute: {
     'Terminal': TerminalIcon,
+    'CommandLine': CommandLineIcon,
   },
   assistantTab: {
     'Sparkles': SparklesIcon,
