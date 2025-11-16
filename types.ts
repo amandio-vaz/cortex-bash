@@ -55,6 +55,13 @@ export interface ScriptHistoryEntry {
   content: string;
 }
 
+// --- Auth Types ---
+export interface User {
+  id: string;
+  email: string;
+}
+
+
 // --- GitHub Integration Types ---
 
 export interface GithubUser {

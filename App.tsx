@@ -10,6 +10,7 @@ import HistoryPanel from './components/HistoryPanel';
 import GithubPanel from './components/GithubPanel';
 import KnowledgeBaseView from './components/KnowledgeBaseView';
 import ApiTestingView from './components/ApiTestingView';
+import AuthModal from './components/AuthModal';
 import { ActiveView, ValidationIssue, ScriptHistoryEntry, GithubUser, Gist } from './types';
 import { analyzeScript, improveScript, generateScript, validateScript, executeScript, addDocstrings, optimizePerformance, checkSecurity, testApiUsage } from './services/geminiService';
 import { getUser, getGistContent, createGist, updateGist } from './services/githubService';
@@ -38,6 +39,7 @@ const App: React.FC = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
   const [isHistoryPanelOpen, setIsHistoryPanelOpen] = useState<boolean>(false);
   const [isGithubPanelOpen, setIsGithubPanelOpen] = useState<boolean>(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
   const [validationIssues, setValidationIssues] = useState<ValidationIssue[]>([]);
   const [fullscreenView, setFullscreenView] = useState<'editor' | 'result' | null>(null);
   const [scriptHistory, setScriptHistory] = useState<ScriptHistoryEntry[]>([]);
@@ -447,7 +449,10 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen text-gray-800 dark:text-white flex flex-col font-sans">
-      <Header onOpenSettings={() => setIsSettingsOpen(true)} />
+      <Header 
+        onOpenSettings={() => setIsSettingsOpen(true)}
+        onOpenAuthModal={() => setIsAuthModalOpen(true)}
+      />
       <main className="flex-grow p-4 lg:p-6 flex flex-col lg:flex-row gap-6">
         <div className={`
           ${fullscreenView === 'result' ? 'hidden' : 'flex'}
@@ -542,6 +547,10 @@ const App: React.FC = () => {
           </div>
         </div>
       </main>
+      <AuthModal 
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+      />
       <SettingsModal 
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}

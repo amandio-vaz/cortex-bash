@@ -5,6 +5,7 @@ import { LanguageProvider } from './context/LanguageContext';
 import { IconProvider } from './context/IconContext';
 import { AppearanceProvider } from './context/ThemeContext';
 import { EditorThemeProvider } from './context/EditorThemeContext';
+import { AuthProvider } from './context/AuthContext';
 
 document.addEventListener('DOMContentLoaded', () => {
   document.body.classList.add('loaded');
@@ -21,9 +22,11 @@ root.render(
     <AppearanceProvider>
       <EditorThemeProvider>
         <LanguageProvider>
-          <IconProvider>
-            <App />
-          </IconProvider>
+          <AuthProvider>
+            <IconProvider>
+              <App />
+            </IconProvider>
+          </AuthProvider>
         </LanguageProvider>
       </EditorThemeProvider>
     </AppearanceProvider>

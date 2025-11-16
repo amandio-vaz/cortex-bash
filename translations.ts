@@ -269,6 +269,16 @@ export const translations: { [key:string]: { [key: string]: string } } = {
     tooltipConfigureExecution: 'Set execution parameters (feature under development).',
     tooltipScrollTop: 'Scroll to Top',
     tooltipScrollBottom: 'Scroll to Bottom',
+    // Auth
+    buttonLogin: 'Login',
+    buttonLogout: 'Logout',
+    authModalTitleLogin: 'Login to your Account',
+    authModalTitleRegister: 'Create a New Account',
+    authEmailLabel: 'Email',
+    authPasswordLabel: 'Password',
+    authSwitchToRegister: "Don't have an account? Sign up",
+    authSwitchToLogin: 'Already have an account? Log in',
+    tooltipLogin: 'Login or create an account',
   },
   'pt-br': {
     headerTitle: 'Cortex BashStudio',
@@ -624,5 +634,15 @@ export const translations: { [key:string]: { [key: string]: string } } = {
     tooltipConfigureExecution: 'Definir parâmetros de execução (funcionalidade em desenvolvimento).',
     tooltipScrollTop: 'Rolar para o Topo',
     tooltipScrollBottom: 'Rolar para o Fim',
+    // Auth
+    buttonLogin: 'Entrar',
+    buttonLogout: 'Sair',
+    authModalTitleLogin: 'Acesse sua Conta',
+    authModalTitleRegister: 'Crie uma Nova Conta',
+    authEmailLabel: 'E-mail',
+    authPasswordLabel: 'Senha',
+    authSwitchToRegister: 'Não tem uma conta? Cadastre-se',
+    authSwitchToLogin: 'Já tem uma conta? Faça login',
+    tooltipLogin: 'Faça login ou crie uma conta',
   }
 };
