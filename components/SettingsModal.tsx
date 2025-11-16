@@ -26,6 +26,8 @@ const actionLabels: Record<CustomizableAction, string> = {
     checkSecurity: 'Security Check Button',
     testApi: 'API Test Button',
     apiTestingTab: 'API Testing Tab',
+    // FIX: Added missing 'deploymentGuidesTab' property to satisfy the 'Record<CustomizableAction, string>' type.
+    deploymentGuidesTab: 'Deployment Guides Tab',
     clearScript: 'Clear Button',
 };
 

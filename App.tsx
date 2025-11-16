@@ -10,6 +10,7 @@ import HistoryPanel from './components/HistoryPanel';
 import GithubPanel from './components/GithubPanel';
 import KnowledgeBaseView from './components/KnowledgeBaseView';
 import ApiTestingView from './components/ApiTestingView';
+import DeploymentGuidesView from './components/DeploymentGuidesView';
 import AuthModal from './components/AuthModal';
 import { ActiveView, ValidationIssue, ScriptHistoryEntry, GithubUser, Gist } from './types';
 import { analyzeScript, improveScript, generateScript, validateScript, executeScript, addDocstrings, optimizePerformance, checkSecurity, testApiUsage } from './services/geminiService';
@@ -415,6 +416,7 @@ const App: React.FC = () => {
   const ChatIcon = getIconComponent('chatTab');
   const KnowledgeBaseIcon = getIconComponent('knowledgeBaseTab');
   const ApiTestingIcon = getIconComponent('apiTestingTab');
+  const DeploymentGuidesIcon = getIconComponent('deploymentGuidesTab');
 
   const renderActiveView = () => {
     switch(activeView) {
@@ -442,6 +444,8 @@ const App: React.FC = () => {
         return <KnowledgeBaseView />;
       case ActiveView.ApiTesting:
         return <ApiTestingView />;
+      case ActiveView.DeploymentGuides:
+        return <DeploymentGuidesView />;
       default:
         return null;
     }
@@ -536,6 +540,14 @@ const App: React.FC = () => {
                 onClick={() => setActiveView(ActiveView.KnowledgeBase)}
                 tooltipText={t('tooltipKnowledgeBaseTab')}
                 view={ActiveView.KnowledgeBase}
+             />
+              <TabButton
+                label={t('tabDeploymentGuides')}
+                icon={<DeploymentGuidesIcon className="h-5 w-5 mr-2" />}
+                isActive={activeView === ActiveView.DeploymentGuides}
+                onClick={() => setActiveView(ActiveView.DeploymentGuides)}
+                tooltipText={t('tooltipDeploymentGuidesTab')}
+                view={ActiveView.DeploymentGuides}
              />
              <div 
                className="absolute bottom-0 h-0.5 bg-gradient-to-r from-cyan-500 to-purple-600 dark:from-cyan-400 dark:to-purple-500 transition-all duration-300 ease-in-out" 

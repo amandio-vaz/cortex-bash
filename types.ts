@@ -9,6 +9,7 @@ export enum ActiveView {
   Generator = 'GENERATOR',
   KnowledgeBase = 'KNOWLEDGE_BASE',
   ApiTesting = 'API_TESTING',
+  DeploymentGuides = 'DEPLOYMENT_GUIDES',
 }
 
 export interface ValidationIssue {
@@ -38,6 +39,7 @@ export type CustomizableAction =
   | 'checkSecurity'
   | 'testApi'
   | 'apiTestingTab'
+  | 'deploymentGuidesTab'
   | 'clearScript';
 
 export type TemplateCategory = 'file' | 'system' | 'network' | 'utility' | 'api';
@@ -102,6 +104,26 @@ export interface KnowledgeCategory {
   displayName: string;
   commands: CommandEntry[];
 }
+
+// --- Deployment Guides Types ---
+export interface DeploymentGuideStep {
+  command: string;
+  description: string;
+  isCode?: boolean;
+}
+
+export interface DeploymentGuide {
+  title: string;
+  description: string;
+  useCase: string;
+  steps: DeploymentGuideStep[];
+}
+
+export interface DeploymentCategory {
+  displayName: string;
+  guides: DeploymentGuide[];
+}
+
 
 // --- Editor Theme Types ---
 
