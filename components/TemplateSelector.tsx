@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { SCRIPT_TEMPLATES } from '../templates';
 import { ScriptTemplate, TemplateCategory } from '../types';
-import { FolderIcon, ServerIcon, GlobeAltIcon, CogIcon, Squares2x2Icon, MagnifyingGlassIcon } from '../icons';
+import { FolderIcon, ServerIcon, GlobeAltIcon, CogIcon, Squares2x2Icon, MagnifyingGlassIcon, CloudArrowUpIcon } from '../icons';
 
 interface TemplateSelectorProps {
   onSelectTemplate: (prompt: string) => void;
@@ -13,6 +13,7 @@ const categoryInfo: Record<TemplateCategory | 'all', { icon: React.FC<{ classNam
   file: { icon: FolderIcon, nameKey: 'template_category_file' },
   system: { icon: ServerIcon, nameKey: 'template_category_system' },
   network: { icon: GlobeAltIcon, nameKey: 'template_category_network' },
+  api: { icon: CloudArrowUpIcon, nameKey: 'template_category_api' },
   utility: { icon: CogIcon, nameKey: 'template_category_utility' },
 };
 

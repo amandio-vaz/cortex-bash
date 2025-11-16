@@ -23,6 +23,8 @@ const actionLabels: Record<CustomizableAction, string> = {
     addDocstrings: 'Add Docs Button',
     optimizePerformance: 'Optimize Button',
     checkSecurity: 'Security Check Button',
+    testApi: 'API Test Button',
+    apiTestingTab: 'API Testing Tab',
 };
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {

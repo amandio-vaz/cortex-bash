@@ -90,4 +90,19 @@ export const KNOWLEDGE_BASE_DATA: Record<string, KnowledgeCategory> = {
       { command: 'git stash pop', description: 'Aplica a última alteração salva com `stash` e a remove da lista de stashes.', example: 'git stash pop' },
     ],
   },
+  api: {
+    displayName: 'knowledgeBaseCategoryApi',
+    commands: [
+      { command: 'curl -X GET <url>', description: 'Faz uma requisição GET para uma URL. Ótimo para buscar dados de uma API.', example: 'curl -X GET https://api.github.com/users/google' },
+      { command: 'curl -X POST -d "param=valor"', description: 'Envia dados de formulário em uma requisição POST.', example: 'curl -X POST -d "name=novo-repo" https://api.github.com/user/repos' },
+      { command: 'curl -H "Header: Valor"', description: 'Adiciona um cabeçalho HTTP à requisição. Essencial para autenticação (Authorization) ou tipo de conteúdo (Content-Type).', example: 'curl -H "Authorization: Bearer meu_token" https://api.example.com/data' },
+      { command: 'curl -d \'{"chave":"valor"}\'', description: 'Envia um corpo de requisição JSON. Combine com -H "Content-Type: application/json".', example: 'curl -X POST -H "Content-Type: application/json" -d \'{"nome":"produto"}\' https://api.store.com/products' },
+      { command: 'curl -i <url>', description: 'Inclui os cabeçalhos da resposta HTTP na saída. Útil para depurar e verificar status codes.', example: 'curl -i https://google.com' },
+      { command: 'jq \'.\'', description: 'Formata (pretty-print) uma saída JSON, tornando-a legível.', example: 'curl ... | jq \'.\'' },
+      { command: 'jq \'.campo.subcampo\'', description: 'Extrai um valor específico de um JSON navegando pelos campos.', example: 'curl ... | jq \'.user.login\'' },
+      { command: 'wget -qO- <url>', description: 'Baixa conteúdo de uma URL e o exibe na saída padrão, de forma silenciosa.', example: 'wget -qO- ifconfig.me' },
+      { command: 'nc -l -p <porta>', description: 'Abre uma porta e escuta por conexões TCP. Perfeito para criar um ouvinte de webhook simples e rápido.', example: 'nc -l -p 8080' },
+      { command: 'ngrok http <porta>', description: 'Expõe uma porta local (ex: 8080) para a internet pública através de um túnel seguro. Indispensável para testar webhooks de serviços externos.', example: 'ngrok http 8080' },
+    ]
+  }
 };

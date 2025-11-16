@@ -8,6 +8,7 @@ export enum ActiveView {
   Chat = 'CHAT',
   Generator = 'GENERATOR',
   KnowledgeBase = 'KNOWLEDGE_BASE',
+  ApiTesting = 'API_TESTING',
 }
 
 export interface ValidationIssue {
@@ -33,9 +34,11 @@ export type CustomizableAction =
   | 'generateAction'
   | 'addDocstrings'
   | 'optimizePerformance'
-  | 'checkSecurity';
+  | 'checkSecurity'
+  | 'testApi'
+  | 'apiTestingTab';
 
-export type TemplateCategory = 'file' | 'system' | 'network' | 'utility';
+export type TemplateCategory = 'file' | 'system' | 'network' | 'utility' | 'api';
 
 export interface ScriptTemplate {
   id: string;

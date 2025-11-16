@@ -40,7 +40,7 @@ const KnowledgeBaseView: React.FC = () => {
                 : 'border-transparent text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white'
             }`}
           >
-            {KNOWLEDGE_BASE_DATA[categoryKey].displayName}
+            {t(KNOWLEDGE_BASE_DATA[categoryKey].displayName)}
           </button>
         ))}
       </div>

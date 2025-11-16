@@ -271,6 +271,35 @@ ${script}
     }
 };
 
+export const testApiUsage = async (script: string): Promise<string> => {
+    try {
+        const ai = getAi();
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: `Aja como um Engenheiro de QA especializado em testes de API e Webhook. Analise o script Bash a seguir.
+
+**Sua tarefa:**
+1.  **Identificar Pontos de Integração:** Encontre quaisquer URLs, endpoints de API, ou comandos (como \`curl\` ou \`wget\`) que interajam com serviços externos.
+2.  **Sugerir Casos de Teste:** Para cada ponto de integração, forneça uma lista de casos de teste práticos. Inclua:
+    -   **Caminho Feliz:** Um comando \`curl\` de exemplo para um teste bem-sucedido.
+    -   **Casos de Borda/Erro:** Sugestões para testar cenários de erro (ex: enviar dados inválidos, usar um token de autenticação incorreto, testar o que acontece se o serviço estiver offline).
+    -   **Testes de Webhook:** Se o script parece ser um ouvinte de webhook, sugira como enviar payloads de teste para ele.
+3.  **Formato de Saída:** Organize sua resposta em formato Markdown. Use cabeçalhos para cada endpoint ou funcionalidade analisada e blocos de código para os comandos \`curl\` de exemplo.
+    -   Se nenhum ponto de integração for encontrado, retorne uma mensagem clara afirmando isso.
+
+**Script para Análise:**
+\`\`\`bash
+${script}
+\`\`\`
+`
+        });
+        return response.text;
+    } catch (error) {
+        console.error("Error suggesting API tests:", error);
+        throw error;
+    }
+};
+
 let chatInstance: Chat | null = null;
 
 export const getChatResponse = async (history: { role: 'user' | 'model'; parts: { text: string }[] }[], newMessage: string): Promise<string> => {

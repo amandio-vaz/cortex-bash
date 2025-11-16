@@ -51,12 +51,13 @@ interface ScriptEditorProps {
   onAddDocstrings: () => void;
   onOptimizePerformance: () => void;
   onCheckSecurity: () => void;
+  onTestApi: () => void;
   githubUser: GithubUser | null;
   currentGistId: string | null;
   onUpdateGist: () => void;
 }
 
-const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, onUndo, onRedo, canUndo, canRedo, onAnalyze, onImprove, onValidate, onExecute, onAutoValidate, onToggleHistoryPanel, onToggleGithubPanel, isLoading, notificationMessage, issues, isFullscreen, onToggleFullscreen, onAddDocstrings, onOptimizePerformance, onCheckSecurity, githubUser, currentGistId, onUpdateGist }) => {
+const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, onUndo, onRedo, canUndo, canRedo, onAnalyze, onImprove, onValidate, onExecute, onAutoValidate, onToggleHistoryPanel, onToggleGithubPanel, isLoading, notificationMessage, issues, isFullscreen, onToggleFullscreen, onAddDocstrings, onOptimizePerformance, onCheckSecurity, onTestApi, githubUser, currentGistId, onUpdateGist }) => {
   const { t } = useLanguage();
   const { getIconComponent } = useIconContext();
   const { theme } = useEditorTheme();
@@ -123,6 +124,7 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, 
   const AddDocstringsIcon = getIconComponent('addDocstrings');
   const OptimizePerformanceIcon = getIconComponent('optimizePerformance');
   const CheckSecurityIcon = getIconComponent('checkSecurity');
+  const TestApiIcon = getIconComponent('testApi');
 
   const commands = useMemo((): Command[] => [
     { id: 'analyze', name: t('buttonAnalyze'), icon: <AnalyzeIcon />, action: onAnalyze, disabled: isLoading || !script },
@@ -133,7 +135,8 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, 
     { id: 'addDocstrings', name: t('buttonAddDocstrings'), icon: <AddDocstringsIcon />, action: onAddDocstrings, disabled: isLoading || !script },
     { id: 'optimize', name: t('buttonOptimizePerformance'), icon: <OptimizePerformanceIcon />, action: onOptimizePerformance, disabled: isLoading || !script },
     { id: 'security', name: t('buttonCheckSecurity'), icon: <CheckSecurityIcon />, action: onCheckSecurity, disabled: isLoading || !script },
-  ], [t, script, isLoading, onAnalyze, onImprove, onValidate, onExecute, onAddDocstrings, onOptimizePerformance, onCheckSecurity]);
+    { id: 'testApi', name: t('buttonTestApi'), icon: <TestApiIcon />, action: onTestApi, disabled: isLoading || !script },
+  ], [t, script, isLoading, onAnalyze, onImprove, onValidate, onExecute, onAddDocstrings, onOptimizePerformance, onCheckSecurity, onTestApi]);
 
   const highlightColors = {
       error: theme.colors.highlightError,
@@ -387,6 +390,15 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, 
             className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-red-100 hover:bg-red-200 text-red-800 dark:text-white dark:bg-gradient-to-br dark:from-red-500 dark:to-pink-500 dark:hover:from-red-500 dark:hover:to-pink-500 focus:ring-4 focus:outline-none focus:ring-red-200 dark:focus:ring-red-800"
           >
             <CheckSecurityIcon className="h-5 w-5 mr-2" /> {t('buttonCheckSecurity')}
+          </button>
+        </Tooltip>
+        <Tooltip text={t('tooltipTestApi')}>
+          <button
+            onClick={onTestApi}
+            disabled={isLoading || !script}
+            className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-orange-100 hover:bg-orange-200 text-orange-800 dark:text-white dark:bg-gradient-to-br dark:from-orange-500 dark:to-amber-500 dark:hover:from-orange-500 dark:hover:to-amber-500 focus:ring-4 focus:outline-none focus:ring-orange-200 dark:focus:ring-orange-800"
+          >
+            <TestApiIcon className="h-5 w-5 mr-2" /> {t('buttonTestApi')}
           </button>
         </Tooltip>
         <Tooltip text={t('tooltipAnalyze')}>

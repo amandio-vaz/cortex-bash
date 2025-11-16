@@ -9,8 +9,9 @@ import SettingsModal from './components/SettingsModal';
 import HistoryPanel from './components/HistoryPanel';
 import GithubPanel from './components/GithubPanel';
 import KnowledgeBaseView from './components/KnowledgeBaseView';
+import ApiTestingView from './components/ApiTestingView';
 import { ActiveView, ValidationIssue, ScriptHistoryEntry, GithubUser, Gist } from './types';
-import { analyzeScript, improveScript, generateScript, validateScript, executeScript, addDocstrings, optimizePerformance, checkSecurity } from './services/geminiService';
+import { analyzeScript, improveScript, generateScript, validateScript, executeScript, addDocstrings, optimizePerformance, checkSecurity, testApiUsage } from './services/geminiService';
 import { getUser, getGistContent, createGist, updateGist } from './services/githubService';
 import { useLanguage } from './context/LanguageContext';
 import { useIconContext } from './context/IconContext';
@@ -439,11 +440,13 @@ const App: React.FC = () => {
   });
   const handleOptimizePerformance = () => handleApiCall(optimizePerformance, script, 'optimizationTitle');
   const handleCheckSecurity = () => handleApiCall(checkSecurity, script, 'securityTitle');
+  const handleTestApi = () => handleApiCall(testApiUsage, script, 'apiTestTitle');
   
   const AssistantIcon = getIconComponent('assistantTab');
   const GeneratorIcon = getIconComponent('generatorTab');
   const ChatIcon = getIconComponent('chatTab');
   const KnowledgeBaseIcon = getIconComponent('knowledgeBaseTab');
+  const ApiTestingIcon = getIconComponent('apiTestingTab');
 
   const renderActiveView = () => {
     switch(activeView) {
@@ -469,6 +472,8 @@ const App: React.FC = () => {
         return <Chatbot />;
       case ActiveView.KnowledgeBase:
         return <KnowledgeBaseView />;
+      case ActiveView.ApiTesting:
+        return <ApiTestingView />;
       default:
         return null;
     }
@@ -506,6 +511,7 @@ const App: React.FC = () => {
             onAddDocstrings={handleAddDocstrings}
             onOptimizePerformance={handleOptimizePerformance}
             onCheckSecurity={handleCheckSecurity}
+            onTestApi={handleTestApi}
             githubUser={githubUser}
             currentGistId={currentGistId}
             onUpdateGist={handleUpdateGist}
@@ -532,6 +538,14 @@ const App: React.FC = () => {
                 onClick={() => setActiveView(ActiveView.Generator)}
                 tooltipText={t('tooltipGeneratorTab')}
                 view={ActiveView.Generator}
+             />
+              <TabButton 
+                label={t('tabApiTesting')}
+                icon={<ApiTestingIcon className="h-5 w-5 mr-2" />}
+                isActive={activeView === ActiveView.ApiTesting}
+                onClick={() => setActiveView(ActiveView.ApiTesting)}
+                tooltipText={t('tooltipApiTestingTab')}
+                view={ActiveView.ApiTesting}
              />
              <TabButton 
                 label={t('tabChatbot')}

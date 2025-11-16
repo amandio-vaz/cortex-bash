@@ -230,6 +230,18 @@ export const FingerPrintIcon: React.FC<IconProps> = ({ className }) => (
     </svg>
 );
 
+export const CloudArrowUpIcon: React.FC<IconProps> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0l-3.75 3.75M12 9.75l3.75 3.75m-7.5-6L12 3.75 15.75 6" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M21 12.75a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+);
+
+export const BeakerIcon: React.FC<IconProps> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19 14.5M14.25 3.104c.251.023.501.05.75.082M19 14.5v.214A2.25 2.25 0 0116.75 17h-4.5a2.25 2.25 0 01-2.25-2.25v-.214m6.5 0L21 12m-9.5 2.5h4.5" />
+    </svg>
+);
 
 export const ICON_LIBRARY: Record<CustomizableAction, Record<string, React.FC<IconProps>>> & { settings: Record<string, React.FC<IconProps>> } = {
   analyze: {
@@ -275,6 +287,12 @@ export const ICON_LIBRARY: Record<CustomizableAction, Record<string, React.FC<Ic
   checkSecurity: {
     'FingerPrint': FingerPrintIcon,
   },
+  testApi: {
+    'CloudArrowUp': CloudArrowUpIcon,
+  },
+  apiTestingTab: {
+    'Beaker': BeakerIcon,
+  },
   settings: {
     'Gear': GearIcon,
   }
@@ -293,4 +311,6 @@ export const DEFAULT_ICONS: Record<CustomizableAction, string> = {
     addDocstrings: 'DocumentText',
     optimizePerformance: 'RocketLaunch',
     checkSecurity: 'FingerPrint',
+    testApi: 'CloudArrowUp',
+    apiTestingTab: 'Beaker',
 };
