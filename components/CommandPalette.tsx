@@ -111,7 +111,8 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose, comman
                             cmd.disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100 dark:hover:bg-slate-800/60'
                           }`}
                         >
-                            <span className="text-gray-600 dark:text-gray-400">{React.cloneElement(cmd.icon as React.ReactElement, { className: 'h-5 w-5' })}</span>
+                            {/* FIX: Cast the icon to a ReactElement with a className prop to satisfy TypeScript's type checking for React.cloneElement. */}
+                            <span className="text-gray-600 dark:text-gray-400">{React.cloneElement(cmd.icon as React.ReactElement<{ className?: string }>, { className: 'h-5 w-5' })}</span>
                             <span className="text-sm text-gray-800 dark:text-gray-200">{cmd.name}</span>
                         </button>
                     </li>

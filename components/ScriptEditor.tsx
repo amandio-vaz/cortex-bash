@@ -158,15 +158,27 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, 
       />
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold" style={{ color: theme.colors.resultTitle }}>{t('editorTitle')}</h2>
-        <Tooltip text={isFullscreen ? t('tooltipExitFullscreen') : t('tooltipEnterFullscreen')}>
-          <button 
-            onClick={onToggleFullscreen}
-            className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-200 dark:hover:bg-white/10 transition-colors duration-200"
-            aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
-          >
-            {isFullscreen ? <ArrowsPointingInIcon className="h-5 w-5" /> : <ArrowsPointingOutIcon className="h-5 w-5" />}
-          </button>
-        </Tooltip>
+        <div className="flex items-center space-x-2">
+            <Tooltip text={t('tooltipValidate')}>
+                <button
+                    onClick={onValidate}
+                    disabled={isLoading || !script}
+                    className="flex items-center justify-center px-3 py-1.5 text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-yellow-100 hover:bg-yellow-200 text-yellow-800 dark:text-white dark:bg-gradient-to-br dark:from-yellow-500 dark:to-orange-500 dark:hover:from-yellow-500 dark:hover:to-orange-500 focus:ring-4 focus:outline-none focus:ring-yellow-200 dark:focus:ring-yellow-800"
+                >
+                    <ValidateIcon className="h-5 w-5 mr-2" />
+                    <span>{t('buttonValidate')}</span>
+                </button>
+            </Tooltip>
+            <Tooltip text={isFullscreen ? t('tooltipExitFullscreen') : t('tooltipEnterFullscreen')}>
+                <button 
+                    onClick={onToggleFullscreen}
+                    className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-200 dark:hover:bg-white/10 transition-colors duration-200"
+                    aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+                >
+                    {isFullscreen ? <ArrowsPointingInIcon className="h-5 w-5" /> : <ArrowsPointingOutIcon className="h-5 w-5" />}
+                </button>
+            </Tooltip>
+        </div>
       </div>
       <div className="w-full flex-grow relative flex border border-gray-300 dark:border-white/10 rounded-md overflow-hidden focus-within:ring-2 focus-within:ring-cyan-500/50 transition-shadow"
            style={{ backgroundColor: theme.colors.editorBg }}>
@@ -433,15 +445,6 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, 
             className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-cyan-100 hover:bg-cyan-200 text-cyan-800 dark:text-white dark:bg-gradient-to-br dark:from-cyan-500 dark:to-blue-500 dark:hover:from-cyan-500 dark:hover:to-blue-500 focus:ring-4 focus:outline-none focus:ring-cyan-200 dark:focus:ring-cyan-800"
           >
             <AnalyzeIcon className="h-5 w-5 mr-2" /> {t('buttonAnalyze')}
-          </button>
-        </Tooltip>
-        <Tooltip text={t('tooltipValidate')}>
-          <button
-            onClick={onValidate}
-            disabled={isLoading || !script}
-            className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-yellow-100 hover:bg-yellow-200 text-yellow-800 dark:text-white dark:bg-gradient-to-br dark:from-yellow-500 dark:to-orange-500 dark:hover:from-yellow-500 dark:hover:to-orange-500 focus:ring-4 focus:outline-none focus:ring-yellow-200 dark:focus:ring-yellow-800"
-          >
-            <ValidateIcon className="h-5 w-5 mr-2" /> {t('buttonValidate')}
           </button>
         </Tooltip>
         <Tooltip text={t('tooltipImprove')}>

@@ -15,78 +15,10 @@ import { analyzeScript, improveScript, generateScript, validateScript, executeSc
 import { getUser, getGistContent, createGist, updateGist } from './services/githubService';
 import { useLanguage } from './context/LanguageContext';
 import { useIconContext } from './context/IconContext';
+import { useUndoRedo } from './hooks/useUndoRedo';
 
 const MAX_HISTORY_ENTRIES = 20;
 const INITIAL_SCRIPT = '#!/bin/bash\n\n# Bem-vindo ao BashStudio!\n# Escreva seu script aqui ou descreva um para ser gerado.\n\necho "Olá, Mundo!"';
-
-// --- Undo/Redo Hook ---
-type UndoRedoState<T> = {
-  past: T[];
-  present: T;
-  future: T[];
-};
-
-// FIX: Updated hook to support lazy initialization for the initial state.
-// This allows passing a function to compute the initial value, which is useful
-// for expensive operations like reading from localStorage, ensuring it only runs once.
-const useUndoRedo = <T,>(initialPresent: T | (() => T)) => {
-  const [state, setState] = useState<UndoRedoState<T>>(() => {
-    const present =
-      typeof initialPresent === 'function'
-        ? (initialPresent as () => T)()
-        : initialPresent;
-    return {
-      past: [],
-      present,
-      future: [],
-    };
-  });
-
-  const canUndo = state.past.length > 0;
-  const canRedo = state.future.length > 0;
-
-  const undo = useCallback(() => {
-    if (!canUndo) return;
-    const previous = state.past[state.past.length - 1];
-    const newPast = state.past.slice(0, state.past.length - 1);
-    setState({
-      past: newPast,
-      present: previous,
-      future: [state.present, ...state.future],
-    });
-  }, [canUndo, state]);
-
-  const redo = useCallback(() => {
-    if (!canRedo) return;
-    const next = state.future[0];
-    const newFuture = state.future.slice(1);
-    setState({
-      past: [...state.past, state.present],
-      present: next,
-      future: newFuture,
-    });
-  }, [canRedo, state]);
-
-  const set = useCallback((newPresent: T) => {
-    if (newPresent === state.present) return;
-    setState({
-      past: [...state.past, state.present],
-      present: newPresent,
-      future: [],
-    });
-  }, [state.present, state.past]);
-  
-  const reset = useCallback((newPresent: T) => {
-    setState({
-      past: [],
-      present: newPresent,
-      future: [],
-    });
-  }, []);
-
-  return [state.present, { set, undo, redo, reset, canUndo, canRedo }] as const;
-};
-
 
 const App: React.FC = () => {
   const { t } = useLanguage();
@@ -408,39 +340,66 @@ const App: React.FC = () => {
     }
   };
 
-  const handleGenerate = (promptToGenerate: string) => {
-    const onSuccess = async (genResponse: string) => {
+  const handleGenerate = async (promptToGenerate: string, systemInstruction: string) => {
+    const title = t('generationTitle');
+    setValidationIssues([]);
+    setIsLoading(true);
+    setIsThinking(true);
+    setResult('');
+    setActiveView(ActiveView.Assistant);
+    setResultTitle(t('thinkingTitle', { title }));
+
+    try {
+      const genResponse = await generateScript(promptToGenerate, systemInstruction);
       const match = genResponse.match(/```bash([\s\S]*?)```/);
-      if (match?.[1]) {
-        const extractedScript = match[1].trim();
-        const validation = await validateScript(extractedScript);
-        let report = '';
+      const extractedScript = match?.[1]?.trim();
+
+      if (!extractedScript) {
+        setResult(genResponse);
+        setResultTitle(title);
+        return;
+      }
+
+      const validation = await validateScript(extractedScript);
+      let report = '';
+
+      if (validation.isValid) {
+        resetScript(extractedScript);
+        setCurrentGistId(null);
+        setValidationIssues(validation.issues); // Show warnings in editor
+        
+        report = `**${t('generationValidAndLoaded')}**\n\n`;
         if (validation.issues.length > 0) {
-          const rTitleKey = validation.isValid ? 'validationSucceededWithIssuesTitle' : 'validationFailedTitle';
-          const rHeaderKey = validation.isValid ? 'validationSucceededWithIssuesHeader' : 'validationReportHeader';
-          report += `## ${t(rTitleKey)}\n\n${t(rHeaderKey)}\n\n`;
-          validation.issues.forEach(issue => {
+            report += `### ${t('validationSucceededWithIssuesTitle')}\n${t('validationSucceededWithIssuesHeader')}\n\n`;
+            validation.issues.forEach(issue => {
+                const linePrefix = issue.line ? `${t('validationIssueLine', { line: issue.line.toString() })}: ` : '';
+                report += `- **[${issue.severity.toUpperCase()}]** ${linePrefix}${issue.message}\n`;
+            });
+            report += `\n\n---\n\n### ${t('originalGenerationTitle')}\n\n`;
+        }
+        setResult(report + genResponse);
+        setResultTitle(title);
+      } else {
+        report = `## ${t('validationFailedTitle')}\n\n${t('validationReportHeader')}\n\n`;
+        validation.issues.forEach(issue => {
             const linePrefix = issue.line ? `${t('validationIssueLine', { line: issue.line.toString() })}: ` : '';
             report += `- **[${issue.severity.toUpperCase()}]** ${linePrefix}${issue.message}\n`;
-          });
-          report += `\n\n---\n\n### ${t('originalGenerationTitle')}\n\n`;
-        }
-        if (validation.isValid) {
-          resetScript(extractedScript);
-          setCurrentGistId(null);
-          const successMsg = validation.issues.length === 0 ? `**${t('validationPassedMessage')}**\n\n${t('generationValidAndLoaded')}` : `**${t('generationValidAndLoaded')}**`;
-          setResult(successMsg + report + genResponse);
-          setResultTitle(t('generationTitle'));
-        } else {
-          setResult(report + genResponse);
-          setResultTitle(t('validationFailedTitle'));
-        }
-      } else {
-        setResult(genResponse);
-        setResultTitle(t('generationTitle'));
+        });
+        report += `\n\n---\n\n### ${t('originalGenerationTitle')}\n\n`;
+        setResult(report + genResponse);
+        setResultTitle(t('validationFailedTitle'));
       }
-    };
-    handleApiCall(generateScript, promptToGenerate, 'generationTitle', true, onSuccess);
+
+    } catch (error) {
+      console.error(error);
+      const errorMessage = error instanceof Error ? error.message : t('errorGeneric');
+      const detailedMessage = `${t('errorApiCall')}\n\n**${t('errorDetails')}:**\n\`\`\`\n${errorMessage}\n\`\`\``;
+      setResult(detailedMessage);
+      setResultTitle(t('errorTitle', { title }));
+    } finally {
+      setIsLoading(false);
+      setIsThinking(false);
+    }
   };
 
   const handleAddDocstrings = () => handleApiCall(addDocstrings, script, 'docstringsTitle', false, (response: string) => {

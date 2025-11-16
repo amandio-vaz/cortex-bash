@@ -6,7 +6,7 @@ import TemplateSelector from './TemplateSelector';
 import { useEditorTheme } from '../context/EditorThemeContext';
 
 interface GeneratorViewProps {
-  onGenerate: (prompt: string) => void;
+  onGenerate: (prompt: string, systemInstruction: string) => void;
   isLoading: boolean;
 }
 
@@ -17,21 +17,30 @@ const GeneratorView: React.FC<GeneratorViewProps> = ({ onGenerate, isLoading }) 
   const GenerateIcon = getIconComponent('generateAction');
 
   const [prompt, setPrompt] = useState<string>(() => {
-    const savedPrompt = localStorage.getItem('bashstudio-generator-prompt');
-    return savedPrompt || 'Crie um script que lista todos os arquivos no diretório atual e os ordena por tamanho.';
+    return localStorage.getItem('bashstudio-generator-prompt') || 'Crie um script que lista todos os arquivos no diretório atual e os ordena por tamanho.';
+  });
+  
+  const [systemInstruction, setSystemInstruction] = useState<string>(() => {
+    return localStorage.getItem('bashstudio-generator-instruction') || '';
   });
 
   const promptRef = useRef(prompt);
+  const systemInstructionRef = useRef(systemInstruction);
+
   useEffect(() => {
     promptRef.current = prompt;
-  }, [prompt]);
+    systemInstructionRef.current = systemInstruction;
+  }, [prompt, systemInstruction]);
 
   useEffect(() => {
     const autoSaveInterval = setInterval(() => {
       if (promptRef.current) {
         localStorage.setItem('bashstudio-generator-prompt', promptRef.current);
       }
-    }, 30000);
+      if (systemInstructionRef.current) {
+        localStorage.setItem('bashstudio-generator-instruction', systemInstructionRef.current);
+      }
+    }, 5000);
     return () => clearInterval(autoSaveInterval);
   }, []);
 
@@ -43,6 +52,18 @@ const GeneratorView: React.FC<GeneratorViewProps> = ({ onGenerate, isLoading }) 
     <div className="bg-white/60 dark:bg-black/20 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-xl flex flex-col h-full p-4 shadow-lg dark:shadow-2xl dark:shadow-black/20 overflow-y-auto"
          style={{ backgroundColor: theme.colors.resultBg }}>
       <h2 className="text-xl font-semibold mb-2 border-b border-gray-300 dark:border-white/10 pb-2" style={{ color: theme.colors.resultTitle }}>{t('generatorTitle')}</h2>
+      
+      <div className="mb-2">
+          <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{t('generatorSystemInstruction')}</label>
+          <input
+            type="text"
+            value={systemInstruction}
+            onChange={(e) => setSystemInstruction(e.target.value)}
+            placeholder={t('generatorSystemInstructionPlaceholder')}
+            className="w-full bg-gray-100 dark:bg-slate-900/50 text-gray-900 dark:text-gray-200 p-2 text-sm rounded-md border border-gray-300 dark:border-white/10 focus:ring-2 focus:ring-cyan-500/50 focus:outline-none"
+          />
+      </div>
+
       <textarea
         value={prompt}
         onChange={(e) => setPrompt(e.target.value)}
@@ -56,7 +77,7 @@ const GeneratorView: React.FC<GeneratorViewProps> = ({ onGenerate, isLoading }) 
       <div className="mt-4">
         <Tooltip text={t('tooltipGenerateFromPrompt')}>
           <button
-            onClick={() => onGenerate(prompt)}
+            onClick={() => onGenerate(prompt, systemInstruction)}
             disabled={isLoading || !prompt.trim()}
             className="w-full relative inline-flex items-center justify-center px-4 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-500 hover:to-indigo-500 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed transition-all duration-300 shadow-lg shadow-purple-500/20 hover:shadow-xl hover:shadow-purple-500/30 focus:outline-none focus:ring-4 focus:ring-purple-500/50"
           >

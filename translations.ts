@@ -163,7 +163,6 @@ export const translations: { [key:string]: { [key: string]: string } } = {
     buttonRunInTerminal: 'Run in Terminal',
     tooltipRunInTerminal: 'Copies the script to your clipboard to run in your local terminal.',
     runInTerminalNotification: 'Script copied! Now paste it into your terminal.',
-
     // --- New File Templates ---
     template_bulkRename_name: 'Bulk Rename',
     template_bulkRename_desc: 'Renames multiple files in a directory based on a regular expression, with a dry-run mode.',
@@ -181,7 +180,6 @@ export const translations: { [key:string]: { [key: string]: string } } = {
     template_extractTextPdf_desc: 'Extracts text content from all PDF files in a directory into corresponding .txt files.',
     template_organizePhotosByDate_name: 'Organize Photos by Date',
     template_organizePhotosByDate_desc: 'Moves photo files into `YYYY/MM` folders based on their EXIF capture date.',
-    
     // --- New System Templates ---
     template_systemInfoReport_name: 'System Info Report',
     template_systemInfoReport_desc: 'Generates a summary of system information (OS, uptime, CPU, RAM usage).',
@@ -201,7 +199,6 @@ export const translations: { [key:string]: { [key: string]: string } } = {
     template_listInstalledPackages_desc: 'Detects the package manager and lists explicitly installed packages to a file.',
     template_checkHighMemoryProcs_name: 'Check High-Memory Processes',
     template_checkHighMemoryProcs_desc: 'Displays the top 10 processes currently consuming the most memory (RAM).',
-
     // --- New Network Templates ---
     template_checkWebsiteStatus_name: 'Website Status Checker',
     template_checkWebsiteStatus_desc: 'Reads a list of URLs from a file and checks the HTTP status code for each.',
@@ -221,7 +218,6 @@ export const translations: { [key:string]: { [key: string]: string } } = {
     template_fetchWeatherApi_desc: 'Gets the current weather for a city by calling a public JSON API.',
     template_sshWrapper_name: 'SSH Connection Wrapper',
     template_sshWrapper_desc: 'A helper script to quickly SSH into predefined servers using aliases.',
-
     // --- New Utility Templates ---
     template_passwordGenerator_name: 'Secure Password Generator',
     template_passwordGenerator_desc: 'Generates a strong, random password with a specified length.',
@@ -244,7 +240,7 @@ export const translations: { [key:string]: { [key: string]: string } } = {
     template_getRandomQuote_name: 'Get Random Quote',
     template_getRandomQuote_desc: 'Fetches and displays a random quote from a public JSON API.',
     // API & Webhook testing
-    buttonTestApi: 'API Test',
+    buttonTestApi: 'Test API Usage',
     tooltipTestApi: 'Suggest tests for APIs and webhooks found in the script.',
     apiTestTitle: 'API Usage Test Suggestions',
     template_category_api: 'API & Webhooks',
@@ -263,6 +259,11 @@ export const translations: { [key:string]: { [key: string]: string } } = {
     template_sendWebhook_desc: 'Sends a sample JSON payload to a specified webhook URL.',
     apiInvalidJson: 'Invalid JSON: ',
     apiInvalidJsonGeneric: 'Invalid JSON format.',
+    // New Features - System Instructions
+    chatSystemInstruction: 'System Instruction',
+    chatSystemInstructionPlaceholder: 'Define the assistant\'s behavior...',
+    generatorSystemInstruction: 'System Instruction',
+    generatorSystemInstructionPlaceholder: 'e.g., Always use set -euo pipefail...',
   },
   'pt-br': {
     headerTitle: 'Cortex BashStudio',
@@ -428,7 +429,6 @@ export const translations: { [key:string]: { [key: string]: string } } = {
     buttonRunInTerminal: 'Executar no Terminal',
     tooltipRunInTerminal: 'Copia o script para a área de transferência para executar no seu terminal local.',
     runInTerminalNotification: 'Script copiado! Agora cole no seu terminal.',
-
     // --- Novos Templates de Arquivo ---
     template_bulkRename_name: 'Renomear em Massa',
     template_bulkRename_desc: 'Renomeia múltiplos arquivos em um diretório com base em uma expressão regular, com modo de teste.',
@@ -446,7 +446,6 @@ export const translations: { [key:string]: { [key: string]: string } } = {
     template_extractTextPdf_desc: 'Extrai o conteúdo de texto de todos os arquivos PDF em um diretório para arquivos .txt correspondentes.',
     template_organizePhotosByDate_name: 'Organizar Fotos por Data',
     template_organizePhotosByDate_desc: 'Move arquivos de fotos para pastas `AAAA/MM` com base na data de captura do EXIF.',
-
     // --- Novos Templates de Sistema ---
     template_systemInfoReport_name: 'Relatório de Informações do Sistema',
     template_systemInfoReport_desc: 'Gera um resumo das informações do sistema (SO, uptime, uso de CPU e RAM).',
@@ -466,7 +465,6 @@ export const translations: { [key:string]: { [key: string]: string } } = {
     template_listInstalledPackages_desc: 'Detecta o gerenciador de pacotes e lista os pacotes explicitamente instalados para um arquivo.',
     template_checkHighMemoryProcs_name: 'Verificar Processos com Alto Uso de Memória',
     template_checkHighMemoryProcs_desc: 'Exibe os 10 processos que mais consomem memória (RAM) atualmente.',
-
     // --- Novos Templates de Rede ---
     template_checkWebsiteStatus_name: 'Verificador de Status de Website',
     template_checkWebsiteStatus_desc: 'Lê uma lista de URLs de um arquivo e verifica o código de status HTTP de cada uma.',
@@ -486,7 +484,6 @@ export const translations: { [key:string]: { [key: string]: string } } = {
     template_fetchWeatherApi_desc: 'Obtém o clima atual para uma cidade chamando uma API JSON pública.',
     template_sshWrapper_name: 'Wrapper de Conexão SSH',
     template_sshWrapper_desc: 'Um script auxiliar para conectar-se rapidamente a servidores predefinidos usando apelidos.',
-
     // --- Novos Templates de Utilitários ---
     template_passwordGenerator_name: 'Gerador de Senha Segura',
     template_passwordGenerator_desc: 'Gera uma senha forte e aleatória com um comprimento especificado.',
@@ -509,7 +506,7 @@ export const translations: { [key:string]: { [key: string]: string } } = {
     template_getRandomQuote_name: 'Obter Citação Aleatória',
     template_getRandomQuote_desc: 'Busca e exibe uma citação aleatória de uma API JSON pública.',
     // Testes de API & Webhook
-    buttonTestApi: 'Testar API',
+    buttonTestApi: 'Testar Uso de API',
     tooltipTestApi: 'Sugere testes para APIs e webhooks encontrados no script.',
     apiTestTitle: 'Sugestões de Teste de API',
     template_category_api: 'API & Webhooks',
@@ -612,5 +609,10 @@ export const translations: { [key:string]: { [key: string]: string } } = {
     quickRefTitle: 'Referência Rápida',
     apiInvalidJson: 'JSON inválido: ',
     apiInvalidJsonGeneric: 'Formato JSON inválido.',
+    // Novas Features - Instruções de Sistema
+    chatSystemInstruction: 'Instrução de Sistema',
+    chatSystemInstructionPlaceholder: 'Defina o comportamento do assistente...',
+    generatorSystemInstruction: 'Instrução de Sistema',
+    generatorSystemInstructionPlaceholder: 'Ex: Sempre use set -euo pipefail...',
   }
 };

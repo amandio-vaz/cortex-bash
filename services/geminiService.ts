@@ -73,7 +73,7 @@ ${script}
     }
 };
 
-export const generateScript = async (prompt: string): Promise<string> => {
+export const generateScript = async (prompt: string, systemInstruction: string): Promise<string> => {
     const langInstruction = `
 ### Requisitos de Comentários (Português do Brasil - pt-BR)
 - O script DEVE ser extensiva e claramente comentado em Português do Brasil (pt-BR).
@@ -92,6 +92,7 @@ ${langInstruction}
 
 **Solicitação do Usuário:** "${prompt}"`,
             config: {
+                systemInstruction: systemInstruction || "Você é um especialista de classe mundial em engenharia Bash. Gere scripts de alta qualidade e prontos para produção.",
                 thinkingConfig: { thinkingBudget: 32768 }
             }
         });
@@ -301,14 +302,15 @@ ${script}
 };
 
 let chatInstance: Chat | null = null;
+let lastSystemInstruction: string | null = null;
 
-export const getChatResponse = async (history: { role: 'user' | 'model'; parts: { text: string }[] }[], newMessage: string): Promise<string> => {
+export const getChatResponse = async (history: { role: 'user' | 'model'; parts: { text: string }[] }[], newMessage: string, systemInstruction: string): Promise<string> => {
     try {
         const ai = getAi();
         
-        if (!chatInstance) {
-            const systemInstruction = "Você é um assistente prestativo e amigável, especializado em scripts Bash e ferramentas de linha de comando. Responda às perguntas de forma clara e concisa.";
-            
+        if (!chatInstance || lastSystemInstruction !== systemInstruction) {
+            console.log("Creating new chat instance with instruction:", systemInstruction);
+            lastSystemInstruction = systemInstruction;
             chatInstance = ai.chats.create({
                 model: 'gemini-2.5-flash',
                 config: {
@@ -322,6 +324,7 @@ export const getChatResponse = async (history: { role: 'user' | 'model'; parts: 
     } catch (error) {
         console.error("Error in chat:", error);
         chatInstance = null;
+        lastSystemInstruction = null;
         throw error;
     }
 };
