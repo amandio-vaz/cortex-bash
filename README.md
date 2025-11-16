@@ -1,20 +1,18 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+<div align="center"> # Cortex BashStudio
 </div>
 
-# Run and deploy your AI Studio app
+## Execute e implamente o App
 
-This contains everything you need to run your app locally.
+- Contém tudo o que você precisa para executar seu aplicativo localmente.
 
-View your app in AI Studio: https://ai.studio/apps/drive/1OLF3FnX-vpvWGp_wB5guAWWE-gX5Mpo3
+---
 
-## Run Locally
+### Executar localmente
 
-**Prerequisites:**  Node.js
+**Pré-requisitos:**  Node.js
 
-
-1. Install dependencies:
+1.Instale as dependências:
    `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
+2. Defina o`GEMINI_API_KEY` em [.env.local](.env.local) para sua chave API Gemini
+3.Execute o aplicativo:
    `npm run dev`
