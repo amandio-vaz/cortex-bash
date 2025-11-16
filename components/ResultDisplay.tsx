@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import Tooltip from './Tooltip';
 import { ArrowsPointingInIcon, ArrowsPointingOutIcon } from '../icons';
@@ -40,6 +40,38 @@ const CopyButton: React.FC<{ code: string }> = ({ code }) => {
         )}
       </button>
     </Tooltip>
+  );
+};
+
+const ApiResultFormatter: React.FC<{ content: string }> = ({ content }) => {
+  const { theme } = useEditorTheme();
+
+  const formattedContent = useMemo(() => {
+    try {
+      // Check if the entire content is a single JSON object/array
+      const parsed = JSON.parse(content);
+      return <pre className="p-0 m-0"><code>{JSON.stringify(parsed, null, 2)}</code></pre>;
+    } catch (e) {
+      // Not a single JSON object, process line by line for status codes
+      return content.split('\n').map((line, index) => {
+        const match = line.match(/^(HTTP\/[\d\.]+\s+)(\d{3})/);
+        if (match) {
+          const statusCode = parseInt(match[2], 10);
+          let colorClass = '';
+          if (statusCode >= 200 && statusCode < 300) colorClass = 'text-green-500 dark:text-green-400 font-bold';
+          else if (statusCode >= 300 && statusCode < 400) colorClass = 'text-yellow-500 dark:text-yellow-400 font-bold';
+          else if (statusCode >= 400) colorClass = 'text-red-500 dark:text-red-400 font-bold';
+          return <div key={index} className={colorClass}>{line}</div>;
+        }
+        return <div key={index}>{line}</div>;
+      });
+    }
+  }, [content]);
+
+  return (
+    <div className="p-4 text-sm overflow-x-auto font-mono whitespace-pre" style={{ color: theme.colors.editorText }}>
+        {formattedContent}
+    </div>
   );
 };
 
@@ -108,6 +140,19 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ title, content, isLoading
         const langMatch = part.match(/^```(\w*)/);
         const language = langMatch && langMatch[1] ? langMatch[1] : 'text';
         const code = part.replace(/^```\w*\n?/, '').replace(/```\n?$/, '');
+        
+        if (language === 'text' && title === t('executionTitle')) {
+            return (
+                <div key={index} className="themed-code-block bg-gray-100 dark:bg-slate-900/70 rounded-lg my-4 border border-gray-200 dark:border-white/10 overflow-hidden">
+                    <div className="themed-code-block-header flex justify-between items-center px-4 py-1.5 bg-gray-200/70 dark:bg-black/20 border-b border-gray-200 dark:border-white/10">
+                        <span className="themed-code-block-lang text-xs font-mono text-cyan-700 dark:text-cyan-400">execution-log</span>
+                        <CopyButton code={code.trim()} />
+                    </div>
+                    <ApiResultFormatter content={code.trim()} />
+                </div>
+            );
+        }
+
         return (
           <div key={index} className="themed-code-block bg-gray-100 dark:bg-slate-900/70 rounded-lg my-4 border border-gray-200 dark:border-white/10 overflow-hidden">
             <div className="themed-code-block-header flex justify-between items-center px-4 py-1.5 bg-gray-200/70 dark:bg-black/20 border-b border-gray-200 dark:border-white/10">

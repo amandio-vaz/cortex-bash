@@ -36,7 +36,8 @@ export type CustomizableAction =
   | 'optimizePerformance'
   | 'checkSecurity'
   | 'testApi'
-  | 'apiTestingTab';
+  | 'apiTestingTab'
+  | 'clearScript';
 
 export type TemplateCategory = 'file' | 'system' | 'network' | 'utility' | 'api';
 

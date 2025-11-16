@@ -52,12 +52,13 @@ interface ScriptEditorProps {
   onOptimizePerformance: () => void;
   onCheckSecurity: () => void;
   onTestApi: () => void;
+  onClearScript: () => void;
   githubUser: GithubUser | null;
   currentGistId: string | null;
   onUpdateGist: () => void;
 }
 
-const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, onUndo, onRedo, canUndo, canRedo, onAnalyze, onImprove, onValidate, onExecute, onAutoValidate, onToggleHistoryPanel, onToggleGithubPanel, isLoading, notificationMessage, issues, isFullscreen, onToggleFullscreen, onAddDocstrings, onOptimizePerformance, onCheckSecurity, onTestApi, githubUser, currentGistId, onUpdateGist }) => {
+const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, onUndo, onRedo, canUndo, canRedo, onAnalyze, onImprove, onValidate, onExecute, onAutoValidate, onToggleHistoryPanel, onToggleGithubPanel, isLoading, notificationMessage, issues, isFullscreen, onToggleFullscreen, onAddDocstrings, onOptimizePerformance, onCheckSecurity, onTestApi, onClearScript, githubUser, currentGistId, onUpdateGist }) => {
   const { t } = useLanguage();
   const { getIconComponent } = useIconContext();
   const { theme } = useEditorTheme();
@@ -117,6 +118,7 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, 
     setTimeout(() => setIsCopied(false), 2000);
   };
 
+  const ClearIcon = getIconComponent('clearScript');
   const AnalyzeIcon = getIconComponent('analyze');
   const ValidateIcon = getIconComponent('validate');
   const ImproveIcon = getIconComponent('improve');
@@ -247,7 +249,16 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, 
           {notificationMessage}
         </div>
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
+      <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 mt-4">
+        <Tooltip text={t('tooltipClear')}>
+          <button
+            onClick={onClearScript}
+            disabled={isLoading || !script}
+            className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-red-100 hover:bg-red-200 text-red-800 dark:text-white dark:bg-gradient-to-br dark:from-red-600 dark:to-red-700 dark:hover:from-red-700 dark:hover:to-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-900"
+          >
+            <ClearIcon className="h-5 w-5 mr-2" /> {t('buttonClear')}
+          </button>
+        </Tooltip>
         <Tooltip text={t('tooltipUndo')}>
           <button
             onClick={onUndo}
@@ -275,29 +286,6 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, 
             <SaveIcon className="h-5 w-5 mr-2" /> {t('buttonSave')}
           </button>
         </Tooltip>
-        {githubUser && (
-          currentGistId ? (
-            <Tooltip text={t('tooltipSyncGist')}>
-              <button
-                onClick={onUpdateGist}
-                disabled={isLoading}
-                className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-200 hover:bg-gray-300 text-gray-800 dark:text-gray-200 dark:bg-gradient-to-br dark:from-gray-700 dark:to-gray-800 dark:hover:from-gray-700 dark:hover:to-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 dark:focus:ring-gray-800"
-              >
-                <GithubIcon className="h-5 w-5 mr-2" /> {t('githubUpdateGist')}
-              </button>
-            </Tooltip>
-          ) : (
-            <Tooltip text={t('tooltipGithub')}>
-              <button
-                onClick={onToggleGithubPanel}
-                disabled={isLoading}
-                className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-200 hover:bg-gray-300 text-gray-800 dark:text-gray-200 dark:bg-gradient-to-br dark:from-gray-700 dark:to-gray-800 dark:hover:from-gray-700 dark:hover:to-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 dark:focus:ring-gray-800"
-              >
-                <GithubIcon className="h-5 w-5 mr-2" /> {t('githubSaveNewGist')}
-              </button>
-            </Tooltip>
-          )
-        )}
         <Tooltip text={t('tooltipCopyScript')}>
           <button
             onClick={handleCopy}
@@ -321,15 +309,39 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, 
             <HistoryIcon className="h-5 w-5 mr-2" /> {t('buttonHistory')}
           </button>
         </Tooltip>
-         <Tooltip text={t('tooltipGithub')}>
-          <button
-            onClick={onToggleGithubPanel}
-            disabled={isLoading}
-            className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-200 hover:bg-gray-300 text-gray-800 dark:text-gray-200 dark:bg-gradient-to-br dark:from-gray-700 dark:to-gray-800 dark:hover:from-gray-700 dark:hover:to-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 dark:focus:ring-gray-800"
-          >
-            <GithubIcon className="h-5 w-5 mr-2" /> GitHub
-          </button>
-        </Tooltip>
+        {githubUser ? (
+          currentGistId ? (
+            <Tooltip text={t('tooltipSyncGist')}>
+              <button
+                onClick={onUpdateGist}
+                disabled={isLoading}
+                className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-200 hover:bg-gray-300 text-gray-800 dark:text-gray-200 dark:bg-gradient-to-br dark:from-gray-700 dark:to-gray-800 dark:hover:from-gray-700 dark:hover:to-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 dark:focus:ring-gray-800"
+              >
+                <GithubIcon className="h-5 w-5 mr-2" /> {t('githubUpdateGist')}
+              </button>
+            </Tooltip>
+          ) : (
+            <Tooltip text={t('tooltipGithub')}>
+              <button
+                onClick={onToggleGithubPanel}
+                disabled={isLoading}
+                className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-200 hover:bg-gray-300 text-gray-800 dark:text-gray-200 dark:bg-gradient-to-br dark:from-gray-700 dark:to-gray-800 dark:hover:from-gray-700 dark:hover:to-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 dark:focus:ring-gray-800"
+              >
+                <GithubIcon className="h-5 w-5 mr-2" /> {t('githubSaveNewGist')}
+              </button>
+            </Tooltip>
+          )
+        ) : (
+             <Tooltip text={t('tooltipGithub')}>
+                <button
+                onClick={onToggleGithubPanel}
+                disabled={isLoading}
+                className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-200 hover:bg-gray-300 text-gray-800 dark:text-gray-200 dark:bg-gradient-to-br dark:from-gray-700 dark:to-gray-800 dark:hover:from-gray-700 dark:hover:to-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 dark:focus:ring-gray-800"
+                >
+                <GithubIcon className="h-5 w-5 mr-2" /> GitHub
+                </button>
+            </Tooltip>
+        )}
         <div className="relative col-span-2 sm:col-span-1" ref={executeButtonRef}>
             <div className="flex w-full">
                 <Tooltip text={t('tooltipExecute')}>

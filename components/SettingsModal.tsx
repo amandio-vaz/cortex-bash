@@ -25,6 +25,7 @@ const actionLabels: Record<CustomizableAction, string> = {
     checkSecurity: 'Security Check Button',
     testApi: 'API Test Button',
     apiTestingTab: 'API Testing Tab',
+    clearScript: 'Clear Button',
 };
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {

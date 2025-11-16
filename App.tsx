@@ -175,6 +175,8 @@ const App: React.FC = () => {
 
   }, [script, t]);
 
+  const handleClearScript = () => resetScript('');
+
   // Keyboard shortcuts for save, undo, redo
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -512,6 +514,7 @@ const App: React.FC = () => {
             onOptimizePerformance={handleOptimizePerformance}
             onCheckSecurity={handleCheckSecurity}
             onTestApi={handleTestApi}
+            onClearScript={handleClearScript}
             githubUser={githubUser}
             currentGistId={currentGistId}
             onUpdateGist={handleUpdateGist}
