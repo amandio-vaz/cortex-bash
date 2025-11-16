@@ -337,7 +337,7 @@ const App: React.FC = () => {
     }
   };
 
-  const handleGenerate = async (promptToGenerate: string, systemInstruction: string) => {
+  const handleGenerate = async (promptToGenerate: string, systemInstruction: string, requiredCommands: string) => {
     const title = t('generationTitle');
     setValidationIssues([]);
     setIsLoading(true);
@@ -347,7 +347,7 @@ const App: React.FC = () => {
     setResultTitle(t('thinkingTitle', { title }));
 
     try {
-      const genResponse = await generateScript(promptToGenerate, systemInstruction);
+      const genResponse = await generateScript(promptToGenerate, systemInstruction, requiredCommands);
       const match = genResponse.match(/```bash([\s\S]*?)```/);
       const extractedScript = match?.[1]?.trim();
 

@@ -73,7 +73,7 @@ ${script}
     }
 };
 
-export const generateScript = async (prompt: string, systemInstruction: string): Promise<string> => {
+export const generateScript = async (prompt: string, systemInstruction: string, requiredCommands: string): Promise<string> => {
     const langInstruction = `
 ### Requisitos de Comentários (Português do Brasil - pt-BR)
 - O script DEVE ser extensiva e claramente comentado em Português do Brasil (pt-BR).
@@ -81,6 +81,14 @@ export const generateScript = async (prompt: string, systemInstruction: string):
 - Comente cada função ou bloco lógico para descrever seu propósito e funcionamento.
 - Forneça comentários detalhados para quaisquer comandos, pipelines ou algoritmos complexos.
 - Explique a estratégia de tratamento de erros, detalhando o que cada verificação de erro faz e por quê.`;
+
+    let commandInstruction = '';
+    if (requiredCommands && requiredCommands.trim() !== '') {
+        commandInstruction = `
+### Requisitos de Ferramentas
+- O script DEVE utilizar as seguintes ferramentas/comandos, se apropriado para a tarefa: \`${requiredCommands}\`.
+- Se uma das ferramentas especificadas for essencial para a tarefa, o script DEVE verificar se ela está instalada e acessível no PATH do sistema. Se não estiver, o script deve sair com uma mensagem de erro clara instruindo o usuário a instalar a dependência.`;
+    }
     
     try {
         const ai = getAi();
@@ -89,6 +97,7 @@ export const generateScript = async (prompt: string, systemInstruction: string):
             contents: `Você é um especialista de classe mundial em engenharia Bash. Sua tarefa é gerar um script Bash de alta qualidade e pronto para produção com base na solicitação do usuário. O script deve ser robusto, idempotente quando aplicável e incluir um excelente tratamento de erros.
 
 ${langInstruction}
+${commandInstruction}
 
 **Solicitação do Usuário:** "${prompt}"`,
             config: {
@@ -249,7 +258,8 @@ export const checkSecurity = async (script: string): Promise<string> => {
 1.  **Analisar Vulnerabilidades:** Verifique o script em busca de vulnerabilidades de segurança comuns, incluindo, mas não se limitando a:
     -   **Injeção de Comandos:** Uso de variáveis não sanitizadas em \`eval\` ou diretamente em comandos.
     -   **Uso de Variáveis sem Aspas:** Variáveis que podem sofrer word splitting ou expansão de glob.
-    -   **Arquivos Temporários Inseguros:** Uso de nomes de arquivo previsíveis em /tmp.
+    -   **Arquivos Temporários Inseguros:** Uso de nomes de arquivo previsíveis em /tmp. Verifique se \`mktemp\` está sendo usado corretamente para criar arquivos e diretórios temporários de forma segura, e se eles são limpos adequadamente.
+    -   **Manuseio Inseguro de Entrada via Pipe:** Analise se o script processa entradas de \`stdin\` (por exemplo, \`cat algum_arquivo | ./meu_script.sh\`) de uma forma que poderia levar a injeção de comandos ou outros comportamentos inesperados.
     -   **Credenciais Hardcoded:** Senhas, tokens de API ou chaves secretas no código.
     -   **Permissões Inseguras:** Comandos que podem ser explorados se executados com permissões elevadas.
 2.  **Gerar Relatório:** Forneça um relatório detalhado em formato Markdown.
