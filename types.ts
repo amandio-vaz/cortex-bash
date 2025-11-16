@@ -160,3 +160,39 @@ export interface EditorTheme {
     scrollbarTrack: string;
   };
 }
+
+// --- API Testing Types ---
+export type ApiMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD';
+
+export interface ApiHeader {
+  id: string;
+  key: string;
+  value: string;
+  enabled: boolean;
+}
+
+export interface ApiRequestParam {
+  id: string;
+  key: string;
+  value: string;
+  enabled: boolean;
+}
+
+export interface ApiRequest {
+  id: string;
+  name: string;
+  method: ApiMethod;
+  url: string;
+  headers: ApiHeader[];
+  params: ApiRequestParam[];
+  body: string;
+}
+
+export interface ApiResponse {
+  status: number;
+  statusText: string;
+  headers: Record<string, string>;
+  body: string;
+  time: number;
+  aiAnalysis?: string;
+}

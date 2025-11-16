@@ -12,8 +12,8 @@ import KnowledgeBaseView from './components/KnowledgeBaseView';
 import ApiTestingView from './components/ApiTestingView';
 import DeploymentGuidesView from './components/DeploymentGuidesView';
 import AuthModal from './components/AuthModal';
-import { ActiveView, ValidationIssue, ScriptHistoryEntry, GithubUser, Gist, RefactorSuggestion } from './types';
-import { analyzeScript, improveScript, generateScript, validateScript, executeScript, addDocstrings, optimizePerformance, checkSecurity, testApiUsage, refactorSelection } from './services/geminiService';
+import { ActiveView, ValidationIssue, ScriptHistoryEntry, GithubUser, Gist, RefactorSuggestion, ApiRequest } from './types';
+import { analyzeScript, improveScript, generateScript, validateScript, executeScript, addDocstrings, optimizePerformance, checkSecurity, generateApiTestsFromScript, refactorSelection } from './services/geminiService';
 import { getUser, getGistContent, createGist, updateGist } from './services/githubService';
 import { useLanguage } from './context/LanguageContext';
 import { useIconContext } from './context/IconContext';
@@ -45,6 +45,7 @@ const App: React.FC = () => {
   const [fullscreenView, setFullscreenView] = useState<'editor' | 'result' | null>(null);
   const [scriptHistory, setScriptHistory] = useState<ScriptHistoryEntry[]>([]);
   const [refactorSuggestion, setRefactorSuggestion] = useState<RefactorSuggestion | null>(null);
+  const [apiTestCollection, setApiTestCollection] = useState<ApiRequest[] | null>(null);
 
   // GitHub State
   const [githubToken, setGithubToken] = useState<string | null>(null);
@@ -69,7 +70,7 @@ const App: React.FC = () => {
     }
   }, [notificationMessage]);
 
-  // Load data from localStorage on initial render
+  // Load data from localStorage on initial render & check for KB updates
   useEffect(() => {
     try {
       const savedHistory = localStorage.getItem('bashstudio-script-history');
@@ -78,10 +79,23 @@ const App: React.FC = () => {
       const savedToken = localStorage.getItem('bashstudio-github-token');
       if (savedToken) handleTokenSubmit(savedToken);
 
+      // Knowledge Base automatic update check (every 30 days)
+      const lastCheckKey = 'bashstudio-last-kb-check';
+      const lastCheck = localStorage.getItem(lastCheckKey);
+      const thirtyDays = 30 * 24 * 60 * 60 * 1000;
+      const now = Date.now();
+
+      if (!lastCheck || (now - parseInt(lastCheck, 10)) > thirtyDays) {
+        // In a real app, you might fetch updates here.
+        // For this mock, we just notify the user and update the timestamp.
+        setNotificationMessage(t('knowledgeUpdateCheckNotification'));
+        localStorage.setItem(lastCheckKey, now.toString());
+      }
+
     } catch (error) {
       console.error("Failed to load data from localStorage:", error);
     }
-  }, []);
+  }, [t]);
 
   const handleToggleFullscreen = (view: 'editor' | 'result') => {
     setFullscreenView(prev => (prev === view ? null : view));
@@ -455,7 +469,37 @@ const App: React.FC = () => {
   });
   const handleOptimizePerformance = () => handleApiCall(optimizePerformance, script, 'optimizationTitle');
   const handleCheckSecurity = () => handleApiCall(checkSecurity, script, 'securityTitle');
-  const handleTestApi = () => handleApiCall(testApiUsage, script, 'apiTestTitle');
+  
+  const handleTestApi = () => {
+    const title = t('apiTestTitle');
+    setApiTestCollection(null);
+    setIsLoading(true);
+    setResult('');
+    setResultTitle(t('thinkingTitle', { title }));
+    setActiveView(ActiveView.Assistant);
+    
+    generateApiTestsFromScript(script)
+      .then(tests => {
+        if (tests && tests.length > 0) {
+            setApiTestCollection(tests);
+            setActiveView(ActiveView.ApiTesting);
+            setNotificationMessage(t('apiTestSuiteGenerated'));
+        } else {
+            setResult(t('apiTestsNotFound'));
+            setResultTitle(title);
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        const errorMessage = err instanceof Error ? err.message : t('errorGeneric');
+        const detailedMessage = `${t('errorApiCall')}\n\n**${t('errorDetails')}:**\n\`\`\`\n${errorMessage}\n\`\`\``;
+        setResult(detailedMessage);
+        setResultTitle(t('errorTitle', { title }));
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  };
   
   const AssistantIcon = getIconComponent('assistantTab');
   const GeneratorIcon = getIconComponent('generatorTab');
@@ -491,7 +535,7 @@ const App: React.FC = () => {
       case ActiveView.KnowledgeBase:
         return <KnowledgeBaseView />;
       case ActiveView.ApiTesting:
-        return <ApiTestingView />;
+        return <ApiTestingView initialCollection={apiTestCollection} onCollectionUpdate={setApiTestCollection} />;
       case ActiveView.DeploymentGuides:
         return <DeploymentGuidesView />;
       default:

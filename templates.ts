@@ -48,7 +48,7 @@ export const SCRIPT_TEMPLATES: ScriptTemplate[] = [
     id: 'archive-old-logs',
     nameKey: 'template_archiveOldLogs_name',
     descriptionKey: 'template_archiveOldLogs_desc',
-    prompt: 'Gere um script que arquiva e comprime arquivos de log antigos. O script deve: procurar por arquivos *.log em um diretório especificado; compactar em .gz qualquer arquivo de log com mais de 7 dias; apagar os arquivos .gz com mais de 90 dias.',
+    prompt: 'Gere um script robusto que arquiva e comprime arquivos de log antigos. O script deve:\n1.  Aceitar o diretório de origem dos logs via flag `--log-dir`. Se não for fornecido, usar `/var/log` como padrão.\n2.  Aceitar o diretório de destino para os arquivos arquivados via flag `--error-dir` (o nome da flag deve ser exatamente este). Se não for fornecido, usar um subdiretório chamado `archives` dentro do diretório de logs (ex: `/var/log/archives`).\n3.  Incluir uma função para processar os argumentos de linha de comando.\n4.  Procurar por arquivos que terminam em `.log` no diretório de logs.\n5.  Compactar (usando gzip) qualquer arquivo de log com data de modificação superior a 7 dias.\n6.  Mover os arquivos `.gz` resultantes para o diretório de destino.\n7.  No diretório de destino, procurar e apagar arquivos `.gz` com data de modificação superior a 90 dias.\n8.  Incluir uma função de ajuda (`--help`) que explique como usar o script e suas opções.\n9.  Adicionar tratamento de erros, como verificar se os diretórios existem.',
     category: 'file',
   },
   {

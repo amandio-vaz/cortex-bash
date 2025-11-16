@@ -1,5 +1,7 @@
 import { GoogleGenAI, Chat, Type } from "@google/genai";
-import { ValidationResult } from '../types';
+import { ValidationResult, ApiRequest, ApiResponse as AppApiResponse, ApiMethod } from '../types';
+import { KNOWLEDGE_BASE_DATA } from '../data/knowledgeBase';
+import { DEPLOYMENT_GUIDES_DATA } from '../data/deploymentGuides';
 
 const getAi = () => {
     if (!process.env.API_KEY) {
@@ -7,6 +9,34 @@ const getAi = () => {
     }
     return new GoogleGenAI({ apiKey: process.env.API_KEY });
 };
+
+const buildKnowledgeContextString = (): string => {
+    const contextParts: string[] = [];
+    contextParts.push('### INÍCIO DO CONTEXTO INTERNO (Use como fonte primária de verdade)');
+
+    contextParts.push('\n#### Guias de Deploy:');
+    Object.values(DEPLOYMENT_GUIDES_DATA).forEach(category => {
+        category.guides.forEach(guide => {
+            contextParts.push(`- Título: ${guide.title}. Descrição: ${guide.description}.`);
+        });
+    });
+
+    contextParts.push('\n#### Base de Conhecimento de Comandos:');
+    Object.values(KNOWLEDGE_BASE_DATA).forEach(category => {
+        if (category.commands) {
+            category.commands.forEach(cmd => contextParts.push(`- \`${cmd.command}\`: ${cmd.description}`));
+        }
+        if (category.subCategories) {
+            Object.values(category.subCategories).forEach(subCategory => {
+                subCategory.commands.forEach(cmd => contextParts.push(`- \`${cmd.command}\`: ${cmd.description}`));
+            });
+        }
+    });
+
+    contextParts.push('\n### FIM DO CONTEXTO INTERNO\n');
+    return contextParts.join('\n');
+};
+
 
 export const analyzeScript = async (script: string): Promise<string> => {
     try {
@@ -125,12 +155,20 @@ export const generateScript = async (prompt: string, systemInstruction: string, 
 - O script DEVE utilizar as seguintes ferramentas/comandos, se apropriado para a tarefa: \`${requiredCommands}\`.
 - Se uma das ferramentas especificadas for essencial para a tarefa, o script DEVE verificar se ela está instalada e acessível no PATH do sistema. Se não estiver, o script deve sair com uma mensagem de erro clara instruindo o usuário a instalar a dependência.`;
     }
+
+    const knowledgeContext = buildKnowledgeContextString();
     
     try {
         const ai = getAi();
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-pro',
             contents: `Você é um especialista de classe mundial em engenharia Bash. Sua tarefa é gerar um script Bash de alta qualidade e pronto para produção com base na solicitação do usuário. O script deve ser robusto, idempotente quando aplicável e incluir um excelente tratamento de erros.
+
+${knowledgeContext}
+
+---
+
+Com base no contexto interno acima e em seu treinamento geral, responda à solicitação do usuário.
 
 ${langInstruction}
 ${commandInstruction}
@@ -225,6 +263,48 @@ ${script}
         };
     }
 };
+
+export const getCodeCompletion = async (lineContent: string): Promise<string[]> => {
+    try {
+        const ai = getAi();
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: `You are a Bash code completion engine. Based on the following partial line of Bash script, provide up to 5 concise and relevant completion suggestions for the last word.
+- Suggest command names, flags, file paths, or variable names.
+- Prioritize the most common and logical completions first.
+- Respond ONLY with a JSON object containing a "suggestions" array. Do not include any explanation, markdown, or formatting.
+- If you have no suggestions, return an empty array.
+
+Partial Line:
+\`\`\`bash
+${lineContent}
+\`\`\`
+`,
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        suggestions: {
+                            type: Type.ARRAY,
+                            items: { type: Type.STRING }
+                        }
+                    },
+                    required: ['suggestions']
+                }
+            }
+        });
+
+        const jsonText = response.text.trim();
+        const result = JSON.parse(jsonText) as { suggestions: string[] };
+        return result.suggestions || [];
+
+    } catch (error) {
+        console.error("Error getting code completion:", error);
+        return []; // Return empty array on error
+    }
+};
+
 
 export const addDocstrings = async (script: string): Promise<string> => {
     try {
@@ -323,34 +403,125 @@ ${script}
     }
 };
 
-export const testApiUsage = async (script: string): Promise<string> => {
+export const generateApiTestsFromScript = async (script: string): Promise<ApiRequest[]> => {
     try {
         const ai = getAi();
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: `Aja como um Engenheiro de QA especializado em testes de API e Webhook. Analise o script Bash a seguir.
+            model: 'gemini-2.5-pro',
+            contents: `Você é um Engenheiro de QA especialista em testes de API. Analise o script Bash a seguir e identifique todas as chamadas de API (usando curl, wget, etc.).
 
-**Sua tarefa:**
-1.  **Identificar Pontos de Integração:** Encontre quaisquer URLs, endpoints de API, ou comandos (como \`curl\` ou \`wget\`) que interajam com serviços externos.
-2.  **Sugerir Casos de Teste:** Para cada ponto de integração, forneça uma lista de casos de teste práticos. Inclua:
-    -   **Caminho Feliz:** Um comando \`curl\` de exemplo para um teste bem-sucedido.
-    -   **Casos de Borda/Erro:** Sugestões para testar cenários de erro (ex: enviar dados inválidos, usar um token de autenticação incorreto, testar o que acontece se o serviço estiver offline).
-    -   **Testes de Webhook:** Se o script parece ser um ouvinte de webhook, sugira como enviar payloads de teste para ele.
-3.  **Formato de Saída:** Organize sua resposta em formato Markdown. Use cabeçalhos para cada endpoint ou funcionalidade analisada e blocos de código para os comandos \`curl\` de exemplo.
-    -   Se nenhum ponto de integração for encontrado, retorne uma mensagem clara afirmando isso.
+Para CADA chamada de API encontrada, gere uma suíte de casos de teste, incluindo pelo menos:
+1.  Um caso de "caminho feliz" (sucesso).
+2.  Um caso de erro de validação (ex: 400 Bad Request) com um corpo (body) malformado, se aplicável.
+3.  Um caso de erro de autenticação (ex: 401 Unauthorized) com um header de autorização inválido.
+4.  Um caso de recurso não encontrado (ex: 404 Not Found) com um ID inválido na URL.
+
+**REQUISITOS DE SAÍDA:**
+- Responda APENAS com um objeto JSON.
+- O objeto deve conter uma única chave "tests", que é um array de objetos.
+- Cada objeto no array deve representar um único caso de teste e seguir estritamente o schema fornecido.
+- O campo 'name' deve ser descritivo, ex: "Get User - Success", "Create User - Missing Name".
+- O campo 'id' deve ser um UUID v4.
+- O campo 'body' deve ser uma string JSON válida ou uma string vazia.
 
 **Script para Análise:**
 \`\`\`bash
 ${script}
 \`\`\`
-`
+`,
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        tests: {
+                            type: Type.ARRAY,
+                            items: {
+                                type: Type.OBJECT,
+                                properties: {
+                                    id: { type: Type.STRING, description: 'UUID v4 for the request' },
+                                    name: { type: Type.STRING, description: 'Descriptive name for the test case' },
+                                    method: { type: Type.STRING, enum: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD'] },
+                                    url: { type: Type.STRING },
+                                    headers: {
+                                        type: Type.ARRAY,
+                                        items: {
+                                            type: Type.OBJECT,
+                                            properties: {
+                                                id: { type: Type.STRING },
+                                                key: { type: Type.STRING },
+                                                value: { type: Type.STRING },
+                                                enabled: { type: Type.BOOLEAN }
+                                            }
+                                        }
+                                    },
+                                    params: {
+                                        type: Type.ARRAY,
+                                        items: {
+                                            type: Type.OBJECT,
+                                            properties: {
+                                                id: { type: Type.STRING },
+                                                key: { type: Type.STRING },
+                                                value: { type: Type.STRING },
+                                                enabled: { type: Type.BOOLEAN }
+                                            }
+                                        }
+                                    },
+                                    body: { type: Type.STRING, description: 'JSON string or empty string' }
+                                }
+                            }
+                        }
+                    },
+                    required: ['tests']
+                }
+            }
         });
-        return response.text;
+
+        const jsonText = response.text.trim();
+        const result = JSON.parse(jsonText) as { tests: ApiRequest[] };
+        return result.tests || [];
     } catch (error) {
-        console.error("Error suggesting API tests:", error);
+        console.error("Error generating API tests from script:", error);
         throw error;
     }
 };
+
+export const analyzeApiResponse = async (request: ApiRequest, response: AppApiResponse): Promise<string> => {
+     try {
+        const ai = getAi();
+        const apiResponse = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: `Você é um engenheiro de software sênior e especialista em diagnóstico de API. Analise a seguinte requisição HTTP e sua resposta.
+
+**Sua Tarefa:**
+Forneça uma análise clara e concisa em formato Markdown. Siga esta estrutura:
+1.  **Status:** Explique o que o código de status HTTP (${response.status} ${response.statusText}) significa no contexto desta requisição específica.
+2.  **Análise do Corpo (Body):** Resuma o conteúdo do corpo da resposta. Se for um erro, explique a mensagem de erro. Se for sucesso, descreva brevemente os dados retornados.
+3.  **Cabeçalhos Notáveis (Headers):** Aponte 1 ou 2 cabeçalhos importantes na resposta (ex: \`Content-Type\`, \`Cache-Control\`, \`X-RateLimit-Remaining\`) e explique o que eles indicam.
+4.  **Sugestão (se for erro):** Se a resposta for um erro (status >= 400), forneça uma causa provável e sugira uma solução clara. Por exemplo, "O token de autorização parece estar faltando ou inválido" ou "O ID na URL pode não existir".
+
+---
+
+### Requisição Enviada:
+- **Método:** ${request.method}
+- **URL:** ${request.url}
+- **Cabeçalhos:** \`\`\`json\n${JSON.stringify(request.headers.filter(h => h.enabled).reduce((acc, h) => ({...acc, [h.key]: h.value}), {}), null, 2)}\n\`\`\`
+- **Corpo:** \`\`\`json\n${request.body || '{}'}\n\`\`\`
+
+### Resposta Recebida:
+- **Status:** ${response.status} ${response.statusText}
+- **Tempo:** ${response.time}ms
+- **Cabeçalhos:** \`\`\`json\n${JSON.stringify(response.headers, null, 2)}\n\`\`\`
+- **Corpo:** \`\`\`json\n${response.body || '{}'}\n\`\`\`
+`
+        });
+        return apiResponse.text;
+    } catch (error) {
+        console.error("Error analyzing API response:", error);
+        throw error;
+    }
+};
+
 
 let chatInstance: Chat | null = null;
 let lastSystemInstruction: string | null = null;
@@ -358,14 +529,16 @@ let lastSystemInstruction: string | null = null;
 export const getChatResponse = async (history: { role: 'user' | 'model'; parts: { text: string }[] }[], newMessage: string, systemInstruction: string): Promise<string> => {
     try {
         const ai = getAi();
+        const knowledgeContext = buildKnowledgeContextString();
+        const finalSystemInstruction = `${systemInstruction}\n\n${knowledgeContext}`;
         
-        if (!chatInstance || lastSystemInstruction !== systemInstruction) {
-            console.log("Creating new chat instance with instruction:", systemInstruction);
-            lastSystemInstruction = systemInstruction;
+        if (!chatInstance || lastSystemInstruction !== finalSystemInstruction) {
+            console.log("Creating new chat instance with instruction:", finalSystemInstruction);
+            lastSystemInstruction = finalSystemInstruction;
             chatInstance = ai.chats.create({
                 model: 'gemini-2.5-flash',
                 config: {
-                    systemInstruction: systemInstruction,
+                    systemInstruction: finalSystemInstruction,
                 },
                 history: history,
             });

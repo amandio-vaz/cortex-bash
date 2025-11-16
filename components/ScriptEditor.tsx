@@ -7,6 +7,8 @@ import { ValidationIssue, GithubUser } from '../types';
 import { ArrowsPointingOutIcon, ArrowsPointingInIcon, SaveIcon, HistoryIcon, ChevronDownIcon, ShieldExclamationIcon, ClipboardIcon, CheckCircleIcon, GithubIcon, UndoIcon, RedoIcon, ChevronUpIcon, ICON_LIBRARY } from '../icons';
 import { useEditorTheme } from '../context/EditorThemeContext';
 import { INITIAL_SCRIPT } from '../constants';
+import { getCodeCompletion } from '../services/geminiService';
+import CompletionSuggestions from './CompletionSuggestions';
 
 const SeverityIcon: React.FC<{ severity: 'error' | 'warning' | 'performance' }> = ({ severity }) => {
   const iconMap = {
@@ -74,6 +76,14 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, 
   const [showScrollButtons, setShowScrollButtons] = useState(false);
   const [selection, setSelection] = useState({ start: 0, end: 0 });
 
+  // Code Completion State
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [suggestionIndex, setSuggestionIndex] = useState(0);
+  const [suggestionPosition, setSuggestionPosition] = useState<{ top: number; left: number } | null>(null);
+  const suggestionTimeoutRef = useRef<number | null>(null);
+  const isApplyingSuggestion = useRef(false);
+
   const LINE_HEIGHT = 20;
   const PADDING_TOP = 12;
 
@@ -99,15 +109,111 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, 
     return () => clearTimeout(autoSaveTimeout);
   }, [script, onSave]);
 
+  const fetchSuggestions = async () => {
+    if (!textareaRef.current) return;
+    const textarea = textareaRef.current;
+    const cursorPosition = textarea.selectionStart;
+    const textUpToCursor = textarea.value.substring(0, cursorPosition);
+    const lines = textUpToCursor.split('\n');
+    const currentLine = lines[lines.length - 1];
+
+    if (currentLine.trim() === '') {
+        setShowSuggestions(false);
+        return;
+    }
+
+    const res = await getCodeCompletion(currentLine);
+    if (res.length > 0) {
+        setSuggestions(res);
+        setSuggestionIndex(0);
+
+        const FONT_WIDTH = 8; // Monospace font approximation
+        const GUTTER_WIDTH = 40; // Gutter width approximation
+        const currentLineNumber = lines.length;
+        const currentColumn = lines[lines.length - 1].length;
+        
+        const top = (currentLineNumber * LINE_HEIGHT) - textarea.scrollTop + PADDING_TOP;
+        const left = (currentColumn * FONT_WIDTH) + GUTTER_WIDTH + 16; // Add text area left padding
+        
+        setSuggestionPosition({ top, left });
+        setShowSuggestions(true);
+    } else {
+        setShowSuggestions(false);
+    }
+  };
+
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
+    if (isApplyingSuggestion.current) {
+        isApplyingSuggestion.current = false;
+        return;
+    }
+    if (suggestionTimeoutRef.current) {
+        clearTimeout(suggestionTimeoutRef.current);
+    }
+    suggestionTimeoutRef.current = window.setTimeout(() => {
+        fetchSuggestions();
+    }, 300);
+
+    return () => {
+        if (suggestionTimeoutRef.current) {
+            clearTimeout(suggestionTimeoutRef.current);
+        }
+    };
+  }, [script]);
+
+  const applySuggestion = (index: number) => {
+    if (!textareaRef.current) return;
+    const suggestion = suggestions[index];
+    const textarea = textareaRef.current;
+    const cursorPosition = textarea.selectionStart;
+    const textUpToCursor = textarea.value.substring(0, cursorPosition);
+    const lastSpaceIndex = textUpToCursor.lastIndexOf(' ');
+    const startOfWord = lastSpaceIndex === -1 ? 0 : lastSpaceIndex + 1;
+    
+    const newScript = 
+        textarea.value.substring(0, startOfWord) +
+        suggestion + " " +
+        textarea.value.substring(cursorPosition);
+
+    isApplyingSuggestion.current = true;
+    setScript(newScript);
+    setShowSuggestions(false);
+
+    // This part is tricky without more complex cursor management,
+    // so we'll let the cursor jump for now. A future improvement could restore it.
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (showSuggestions) {
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            setSuggestionIndex(prev => (prev + 1) % suggestions.length);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            setSuggestionIndex(prev => (prev - 1 + suggestions.length) % suggestions.length);
+        } else if (e.key === 'Tab' || e.key === 'Enter') {
+            e.preventDefault();
+            applySuggestion(suggestionIndex);
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            setShowSuggestions(false);
+        }
+    } else if ((e.ctrlKey || e.metaKey) && e.key === ' ') {
+        e.preventDefault();
+        fetchSuggestions();
+    }
+  };
+
+
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'p') {
         e.preventDefault();
         setIsPaletteOpen(true);
       }
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
   }, []);
   
   const checkScroll = () => {
@@ -135,6 +241,7 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, 
     if (textareaRef.current) {
       setScrollTop(textareaRef.current.scrollTop);
     }
+    setShowSuggestions(false);
   };
 
   const handleCopy = () => {
@@ -268,6 +375,7 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, 
             onChange={(e) => setScript(e.target.value)}
             onScroll={handleScroll}
             onSelect={handleSelect}
+            onKeyDown={handleKeyDown}
             placeholder={t('editorPlaceholder')}
             className="absolute inset-0 w-full h-full bg-transparent p-3 pl-8 font-mono text-sm focus:outline-none resize-none z-10"
             style={{ 
@@ -279,6 +387,14 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, 
             wrap="off"
             spellCheck="false"
           />
+          {showSuggestions && suggestionPosition && (
+            <CompletionSuggestions
+              suggestions={suggestions}
+              position={suggestionPosition}
+              selectedIndex={suggestionIndex}
+              onSelect={(index) => applySuggestion(index)}
+            />
+          )}
           <div 
               className="absolute top-0 h-full pointer-events-none"
               style={{ 
