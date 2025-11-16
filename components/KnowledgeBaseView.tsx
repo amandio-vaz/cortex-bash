@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { KNOWLEDGE_BASE_DATA } from '../data/knowledgeBase';
+import { MagnifyingGlassIcon } from '../icons';
 
 const KnowledgeBaseView: React.FC = () => {
   const { t } = useLanguage();
@@ -10,7 +11,10 @@ const KnowledgeBaseView: React.FC = () => {
 
   const filteredCommands = useMemo(() => {
     if (!activeCategory) return [];
-    const lowercasedFilter = searchTerm.toLowerCase();
+    const lowercasedFilter = searchTerm.toLowerCase().trim();
+    if (!lowercasedFilter) {
+      return KNOWLEDGE_BASE_DATA[activeCategory].commands;
+    }
     return KNOWLEDGE_BASE_DATA[activeCategory].commands.filter(cmd =>
       cmd.command.toLowerCase().includes(lowercasedFilter) ||
       cmd.description.toLowerCase().includes(lowercasedFilter) ||
@@ -42,13 +46,14 @@ const KnowledgeBaseView: React.FC = () => {
       </div>
 
       {/* Search Input */}
-      <div className="mb-4">
+      <div className="mb-4 relative">
+        <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
         <input
           type="text"
           value={searchTerm}
           onChange={e => setSearchTerm(e.target.value)}
           placeholder={t('knowledgeBaseSearchPlaceholder')}
-          className="w-full bg-gray-100/50 dark:bg-slate-900/50 text-gray-900 dark:text-gray-200 p-2 pl-4 rounded-full border border-gray-300 dark:border-white/10 focus:ring-2 focus:ring-cyan-500/50 focus:outline-none"
+          className="w-full bg-gray-100/50 dark:bg-slate-900/50 text-gray-900 dark:text-gray-200 p-2 pl-11 rounded-full border border-gray-300 dark:border-white/10 focus:ring-2 focus:ring-cyan-500/50 focus:outline-none"
         />
       </div>
 
@@ -76,9 +81,9 @@ const KnowledgeBaseView: React.FC = () => {
             ))}
           </tbody>
         </table>
-        {filteredCommands.length === 0 && (
+        {filteredCommands.length === 0 && searchTerm.trim() && (
             <div className="text-center py-10 text-gray-500 dark:text-gray-400">
-                Nenhum comando encontrado para "{searchTerm}".
+                {t('knowledgeBaseNoResults', { searchTerm })}
             </div>
         )}
       </div>

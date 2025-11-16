@@ -124,6 +124,7 @@ export const translations: { [key:string]: { [key: string]: string } } = {
     knowledgeBaseHeaderCommand: 'Command',
     knowledgeBaseHeaderDescription: 'Description',
     knowledgeBaseHeaderExample: 'Example',
+    knowledgeBaseNoResults: 'No commands found matching "{searchTerm}".',
     // GitHub Integration
     tooltipGithub: 'Manage GitHub Gist integration.',
     githubTitle: 'GitHub Gist Integration',
@@ -359,6 +360,7 @@ export const translations: { [key:string]: { [key: string]: string } } = {
     knowledgeBaseHeaderCommand: 'Comando',
     knowledgeBaseHeaderDescription: 'Descrição',
     knowledgeBaseHeaderExample: 'Exemplo',
+    knowledgeBaseNoResults: 'Nenhum comando encontrado para "{searchTerm}".',
     // Integração GitHub
     tooltipGithub: 'Gerenciar integração com GitHub Gists.',
     githubTitle: 'Integração com GitHub Gist',
