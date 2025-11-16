@@ -16,9 +16,9 @@ import { getUser, getGistContent, createGist, updateGist } from './services/gith
 import { useLanguage } from './context/LanguageContext';
 import { useIconContext } from './context/IconContext';
 import { useUndoRedo } from './hooks/useUndoRedo';
+import { INITIAL_SCRIPT } from './constants';
 
 const MAX_HISTORY_ENTRIES = 20;
-const INITIAL_SCRIPT = '#!/bin/bash\n\n# Bem-vindo ao BashStudio!\n# Escreva seu script aqui ou descreva um para ser gerado.\n\necho "Olá, Mundo!"';
 
 const App: React.FC = () => {
   const { t } = useLanguage();
@@ -119,6 +119,13 @@ const App: React.FC = () => {
 
   const handleClearScript = () => resetScript('');
 
+  // FIX: Added handler for opening execution config.
+  const handleOpenExecutionConfig = useCallback(() => {
+    // TODO: Implement execution configuration modal
+    console.log("Opening execution configuration...");
+    setNotificationMessage(t('executionConfigNotImplemented'));
+  }, [t]);
+
   // Keyboard shortcuts for save, undo, redo
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -153,18 +160,6 @@ const App: React.FC = () => {
     setIsHistoryPanelOpen(false);
   };
   
-  // Debounced auto-save mechanism
-  useEffect(() => {
-    const autoSaveTimeout = setTimeout(() => {
-      if (script && script !== INITIAL_SCRIPT) {
-        handleSaveScript();
-      }
-    }, 2000); // Auto-saves 2 seconds after the user stops typing
-
-    return () => clearTimeout(autoSaveTimeout);
-  }, [script, handleSaveScript]);
-
-
   useEffect(() => {
     if (tabContainerRef.current) {
       const activeTabElement = tabContainerRef.current.querySelector(`[data-view='${activeView}']`) as HTMLElement;
@@ -488,6 +483,7 @@ const App: React.FC = () => {
             githubUser={githubUser}
             currentGistId={currentGistId}
             onUpdateGist={handleUpdateGist}
+            onOpenExecutionConfig={handleOpenExecutionConfig}
           />
         </div>
         <div className={`

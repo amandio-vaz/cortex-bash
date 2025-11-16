@@ -115,5 +115,7 @@ export interface EditorTheme {
     highlightWarning: string;
     highlightPerformance: string;
     scrollbarThumb: string;
+    scrollbarThumbHover: string;
+    scrollbarTrack: string;
   };
 }

@@ -40,22 +40,31 @@ export const EditorThemeProvider: React.FC<{ children: ReactNode }> = ({ childre
 
     const { colors } = theme;
     styleTag.innerHTML = `
+      /* Modern Scrollbar Styling */
+      /* For Firefox */
+      * {
+        scrollbar-width: auto;
+        scrollbar-color: ${colors.scrollbarThumb} ${colors.scrollbarTrack};
+      }
+      
+      /* For Webkit browsers (Chrome, Safari, Edge) */
       ::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
+        width: 12px;
+        height: 12px;
       }
       ::-webkit-scrollbar-track {
-        background: transparent;
+        background: ${colors.scrollbarTrack};
       }
       ::-webkit-scrollbar-thumb {
         background-color: ${colors.scrollbarThumb};
-        border-radius: 4px;
-        border: 2px solid transparent;
-        background-clip: content-box;
+        border-radius: 10px;
+        border: 3px solid ${colors.scrollbarTrack}; /* Creates padding around thumb */
       }
       ::-webkit-scrollbar-thumb:hover {
-        background-color: ${colors.scrollbarThumb.replace('0.5', '0.8')};
+        background-color: ${colors.scrollbarThumbHover};
       }
+      
+      /* Other themed styles */
       .themed-code-block {
         background-color: ${colors.codeBg} !important;
         border-color: rgba(255, 255, 255, 0.1) !important;

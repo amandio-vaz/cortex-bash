@@ -18,6 +18,8 @@ export const EDITOR_THEMES: Record<string, EditorTheme> = {
       highlightWarning: 'rgba(245, 158, 11, 0.15)', // amber-500/15
       highlightPerformance: 'rgba(59, 130, 246, 0.15)', // blue-500/15
       scrollbarThumb: 'rgba(107, 114, 128, 0.5)', // gray-500/50
+      scrollbarThumbHover: 'rgba(107, 114, 128, 0.7)',
+      scrollbarTrack: 'rgba(0, 0, 0, 0.05)',
     },
   },
   defaultDark: {
@@ -37,6 +39,8 @@ export const EDITOR_THEMES: Record<string, EditorTheme> = {
       highlightWarning: 'rgba(245, 158, 11, 0.2)', // amber-500/20
       highlightPerformance: 'rgba(59, 130, 246, 0.2)', // blue-500/20
       scrollbarThumb: 'rgba(100, 116, 139, 0.5)', // slate-500/50
+      scrollbarThumbHover: 'rgba(100, 116, 139, 0.7)',
+      scrollbarTrack: '#1E293B',
     },
   },
   monokai: {
@@ -56,6 +60,8 @@ export const EDITOR_THEMES: Record<string, EditorTheme> = {
       highlightWarning: 'rgba(253, 151, 31, 0.25)', // #FD971F
       highlightPerformance: 'rgba(102, 217, 239, 0.25)', // #66D9EF
       scrollbarThumb: 'rgba(117, 113, 94, 0.6)',
+      scrollbarThumbHover: 'rgba(117, 113, 94, 0.8)',
+      scrollbarTrack: '#3E3D32',
     },
   },
   solarizedDark: {
@@ -75,6 +81,8 @@ export const EDITOR_THEMES: Record<string, EditorTheme> = {
       highlightWarning: 'rgba(181, 137, 0, 0.25)', // #b58900
       highlightPerformance: 'rgba(42, 161, 152, 0.25)', // #2aa198
       scrollbarThumb: 'rgba(88, 110, 117, 0.6)',
+      scrollbarThumbHover: 'rgba(88, 110, 117, 0.8)',
+      scrollbarTrack: '#073642',
     },
   },
   dracula: {
@@ -94,6 +102,8 @@ export const EDITOR_THEMES: Record<string, EditorTheme> = {
       highlightWarning: 'rgba(241, 250, 140, 0.25)', // #f1fa8c
       highlightPerformance: 'rgba(139, 233, 253, 0.25)', // #8be9fd
       scrollbarThumb: 'rgba(98, 114, 164, 0.6)',
+      scrollbarThumbHover: 'rgba(98, 114, 164, 0.8)',
+      scrollbarTrack: '#44475a',
     },
   },
 };

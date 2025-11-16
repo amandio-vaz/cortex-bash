@@ -4,8 +4,9 @@ import { useIconContext } from '../context/IconContext';
 import Tooltip from './Tooltip';
 import CommandPalette, { Command } from './CommandPalette';
 import { ValidationIssue, GithubUser } from '../types';
-import { ArrowsPointingOutIcon, ArrowsPointingInIcon, SaveIcon, HistoryIcon, ChevronDownIcon, ShieldExclamationIcon, ClipboardIcon, CheckCircleIcon, GithubIcon, UndoIcon, RedoIcon } from '../icons';
+import { ArrowsPointingOutIcon, ArrowsPointingInIcon, SaveIcon, HistoryIcon, ChevronDownIcon, ShieldExclamationIcon, ClipboardIcon, CheckCircleIcon, GithubIcon, UndoIcon, RedoIcon, ChevronUpIcon, ICON_LIBRARY } from '../icons';
 import { useEditorTheme } from '../context/EditorThemeContext';
+import { INITIAL_SCRIPT } from '../constants';
 
 const SeverityIcon: React.FC<{ severity: 'error' | 'warning' | 'performance' }> = ({ severity }) => {
   const iconMap = {
@@ -57,19 +58,19 @@ interface ScriptEditorProps {
   githubUser: GithubUser | null;
   currentGistId: string | null;
   onUpdateGist: () => void;
+  onOpenExecutionConfig: () => void;
 }
 
-const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, onUndo, onRedo, canUndo, canRedo, onAnalyze, onImprove, onValidate, onExecute, onAutoValidate, onToggleHistoryPanel, onToggleGithubPanel, isLoading, notificationMessage, issues, isFullscreen, onToggleFullscreen, onAddDocstrings, onOptimizePerformance, onCheckSecurity, onTestApi, onClearScript, onRunInTerminal, githubUser, currentGistId, onUpdateGist }) => {
+const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, onUndo, onRedo, canUndo, canRedo, onAnalyze, onImprove, onValidate, onExecute, onAutoValidate, onToggleHistoryPanel, onToggleGithubPanel, isLoading, notificationMessage, issues, isFullscreen, onToggleFullscreen, onAddDocstrings, onOptimizePerformance, onCheckSecurity, onTestApi, onClearScript, onRunInTerminal, githubUser, currentGistId, onUpdateGist, onOpenExecutionConfig }) => {
   const { t } = useLanguage();
   const { getIconComponent } = useIconContext();
   const { theme } = useEditorTheme();
   
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const executeButtonRef = useRef<HTMLDivElement>(null);
   const [scrollTop, setScrollTop] = useState(0);
-  const [isExecuteMenuOpen, setIsExecuteMenuOpen] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [isPaletteOpen, setIsPaletteOpen] = useState(false);
+  const [showScrollButtons, setShowScrollButtons] = useState(false);
 
   const LINE_HEIGHT = 20;
   const PADDING_TOP = 12;
@@ -84,17 +85,17 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, 
     return () => clearTimeout(validationTimeout);
   }, [script, onAutoValidate]);
 
+  // Debounced auto-save for script content
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (executeButtonRef.current && !executeButtonRef.current.contains(event.target as Node)) {
-        setIsExecuteMenuOpen(false);
+    const autoSaveTimeout = setTimeout(() => {
+      // Avoid saving the initial placeholder script
+      if (script && script !== INITIAL_SCRIPT) {
+        onSave();
       }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
+    }, 2000); // Auto-saves 2 seconds after the user stops typing
+
+    return () => clearTimeout(autoSaveTimeout);
+  }, [script, onSave]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -106,6 +107,27 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
+  
+  const checkScroll = () => {
+    if (textareaRef.current) {
+        setShowScrollButtons(textareaRef.current.scrollHeight > textareaRef.current.clientHeight);
+    }
+  };
+
+  useEffect(() => {
+      checkScroll();
+      const textarea = textareaRef.current;
+      const resizeObserver = new ResizeObserver(checkScroll);
+      if (textarea) {
+          resizeObserver.observe(textarea);
+      }
+      return () => {
+          if (textarea) {
+              resizeObserver.unobserve(textarea);
+          }
+      };
+  }, [script]);
+
 
   const handleScroll = () => {
     if (textareaRef.current) {
@@ -117,6 +139,14 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, 
     navigator.clipboard.writeText(script);
     setIsCopied(true);
     setTimeout(() => setIsCopied(false), 2000);
+  };
+  
+  const scrollToTop = () => {
+    textareaRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const scrollToBottom = () => {
+    textareaRef.current?.scrollTo({ top: textareaRef.current.scrollHeight, behavior: 'smooth' });
   };
 
   const ClearIcon = getIconComponent('clearScript');
@@ -148,6 +178,10 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, 
       performance: theme.colors.highlightPerformance
   };
 
+  const ConfigIcon = ICON_LIBRARY.settings.Gear;
+
+  const utilityButtonClasses = "w-full flex items-center justify-center px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-200 hover:bg-gray-300 text-gray-800 dark:text-gray-200 dark:bg-gradient-to-br dark:from-gray-500 dark:to-gray-600 dark:hover:from-gray-600 dark:hover:to-gray-700 focus:ring-4 focus:outline-none focus:ring-gray-300 dark:focus:ring-gray-800";
+  
   return (
     <div className="bg-white/60 dark:bg-black/20 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-xl flex flex-col h-full p-4 relative shadow-lg dark:shadow-2xl dark:shadow-black/20"
          style={{ backgroundColor: theme.isDark ? theme.colors.resultBg : undefined }}>
@@ -159,16 +193,6 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, 
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold" style={{ color: theme.colors.resultTitle }}>{t('editorTitle')}</h2>
         <div className="flex items-center space-x-2">
-            <Tooltip text={t('tooltipValidate')}>
-                <button
-                    onClick={onValidate}
-                    disabled={isLoading || !script}
-                    className="flex items-center justify-center px-3 py-1.5 text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-yellow-100 hover:bg-yellow-200 text-yellow-800 dark:text-white dark:bg-gradient-to-br dark:from-yellow-500 dark:to-orange-500 dark:hover:from-yellow-500 dark:hover:to-orange-500 focus:ring-4 focus:outline-none focus:ring-yellow-200 dark:focus:ring-yellow-800"
-                >
-                    <ValidateIcon className="h-5 w-5 mr-2" />
-                    <span>{t('buttonValidate')}</span>
-                </button>
-            </Tooltip>
             <Tooltip text={isFullscreen ? t('tooltipExitFullscreen') : t('tooltipEnterFullscreen')}>
                 <button 
                     onClick={onToggleFullscreen}
@@ -182,6 +206,20 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, 
       </div>
       <div className="w-full flex-grow relative flex border border-gray-300 dark:border-white/10 rounded-md overflow-hidden focus-within:ring-2 focus-within:ring-cyan-500/50 transition-shadow"
            style={{ backgroundColor: theme.colors.editorBg }}>
+        {showScrollButtons && (
+            <div className="absolute bottom-4 right-4 z-20 flex flex-col space-y-2">
+                <Tooltip text={t('tooltipScrollTop')}>
+                    <button onClick={scrollToTop} className="p-2 rounded-full bg-gray-800/50 dark:bg-black/30 backdrop-blur-md text-white hover:bg-gray-800/70 dark:hover:bg-black/50 transition-colors">
+                        <ChevronUpIcon className="h-5 w-5" />
+                    </button>
+                </Tooltip>
+                <Tooltip text={t('tooltipScrollBottom')}>
+                    <button onClick={scrollToBottom} className="p-2 rounded-full bg-gray-800/50 dark:bg-black/30 backdrop-blur-md text-white hover:bg-gray-800/70 dark:hover:bg-black/50 transition-colors">
+                        <ChevronDownIcon className="h-5 w-5" />
+                    </button>
+                </Tooltip>
+            </div>
+        )}
         <div
           className="p-3 pr-2 text-right font-mono text-sm select-none z-10 border-r border-gray-300 dark:border-white/10"
           style={{
@@ -222,11 +260,12 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, 
             onChange={(e) => setScript(e.target.value)}
             onScroll={handleScroll}
             placeholder={t('editorPlaceholder')}
-            className="absolute inset-0 w-full h-full bg-transparent p-3 pl-8 font-mono text-sm focus:outline-none resize-none leading-tight z-10"
+            className="absolute inset-0 w-full h-full bg-transparent p-3 pl-8 font-mono text-sm focus:outline-none resize-none z-10"
             style={{ 
               color: theme.colors.editorText, 
               whiteSpace: 'pre', 
-              overflowWrap: 'normal' 
+              overflowWrap: 'normal',
+              lineHeight: `${LINE_HEIGHT}px`
             }}
             wrap="off"
             spellCheck="false"
@@ -263,199 +302,100 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, 
           {notificationMessage}
         </div>
       </div>
-      <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 mt-4">
-        <Tooltip text={t('tooltipClear')}>
-          <button
-            onClick={onClearScript}
-            disabled={isLoading || !script}
-            className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-red-100 hover:bg-red-200 text-red-800 dark:text-white dark:bg-gradient-to-br dark:from-red-600 dark:to-red-700 dark:hover:from-red-700 dark:hover:to-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-900"
-          >
-            <ClearIcon className="h-5 w-5 mr-2" /> {t('buttonClear')}
-          </button>
-        </Tooltip>
-        <Tooltip text={t('tooltipUndo')}>
-          <button
-            onClick={onUndo}
-            disabled={isLoading || !canUndo}
-            className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-200 hover:bg-gray-300 text-gray-800 dark:text-gray-200 dark:bg-gradient-to-br dark:from-gray-500 dark:to-gray-600 dark:hover:from-gray-500 dark:hover:to-gray-600 focus:ring-4 focus:outline-none focus:ring-gray-300 dark:focus:ring-gray-800"
-          >
-            <UndoIcon className="h-5 w-5 mr-2" /> {t('buttonUndo')}
-          </button>
-        </Tooltip>
-        <Tooltip text={t('tooltipRedo')}>
-          <button
-            onClick={onRedo}
-            disabled={isLoading || !canRedo}
-            className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-200 hover:bg-gray-300 text-gray-800 dark:text-gray-200 dark:bg-gradient-to-br dark:from-gray-500 dark:to-gray-600 dark:hover:from-gray-500 dark:hover:to-gray-600 focus:ring-4 focus:outline-none focus:ring-gray-300 dark:focus:ring-gray-800"
-          >
-            <RedoIcon className="h-5 w-5 mr-2" /> {t('buttonRedo')}
-          </button>
-        </Tooltip>
-        <Tooltip text={t('tooltipSave')}>
-          <button
-            onClick={onSave}
-            disabled={isLoading}
-            className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-200 hover:bg-gray-300 text-gray-800 dark:text-gray-200 dark:bg-gradient-to-br dark:from-gray-500 dark:to-gray-600 dark:hover:from-gray-500 dark:hover:to-gray-600 focus:ring-4 focus:outline-none focus:ring-gray-300 dark:focus:ring-gray-800"
-          >
-            <SaveIcon className="h-5 w-5 mr-2" /> {t('buttonSave')}
-          </button>
-        </Tooltip>
-        <Tooltip text={t('tooltipCopyScript')}>
-          <button
-            onClick={handleCopy}
-            disabled={isLoading || !script || isCopied}
-            className={`w-full flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${
-                isCopied
-                    ? 'bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-300 cursor-default'
-                    : 'bg-gray-200 hover:bg-gray-300 text-gray-800 dark:text-gray-200 dark:bg-gradient-to-br dark:from-gray-500 dark:to-gray-600 dark:hover:from-gray-500 dark:hover:to-gray-600'
-            } focus:ring-4 focus:outline-none focus:ring-gray-300 dark:focus:ring-gray-800`}
-          >
-            {isCopied ? <CheckCircleIcon className="h-5 w-5 mr-2" /> : <ClipboardIcon className="h-5 w-5 mr-2" />}
-            {isCopied ? t('buttonCopied') : t('buttonCopy')}
-          </button>
-        </Tooltip>
-        <Tooltip text={t('tooltipHistory')}>
-          <button
-            onClick={onToggleHistoryPanel}
-            disabled={isLoading}
-            className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-200 hover:bg-gray-300 text-gray-800 dark:text-gray-200 dark:bg-gradient-to-br dark:from-gray-500 dark:to-gray-600 dark:hover:from-gray-500 dark:hover:to-gray-600 focus:ring-4 focus:outline-none focus:ring-gray-300 dark:focus:ring-gray-800"
-          >
-            <HistoryIcon className="h-5 w-5 mr-2" /> {t('buttonHistory')}
-          </button>
-        </Tooltip>
-        {githubUser ? (
-          currentGistId ? (
-            <Tooltip text={t('tooltipSyncGist')}>
-              <button
-                onClick={onUpdateGist}
-                disabled={isLoading}
-                className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-200 hover:bg-gray-300 text-gray-800 dark:text-gray-200 dark:bg-gradient-to-br dark:from-gray-700 dark:to-gray-800 dark:hover:from-gray-700 dark:hover:to-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 dark:focus:ring-gray-800"
-              >
-                <GithubIcon className="h-5 w-5 mr-2" /> {t('githubUpdateGist')}
-              </button>
+
+      {/* Action Buttons - Redesigned Layout */}
+      <div className="mt-4 flex flex-col gap-3">
+        {/* Utility Bar */}
+        <div className="grid grid-cols-4 sm:grid-cols-7 gap-2">
+            <Tooltip text={t('tooltipClear')}>
+                <button onClick={onClearScript} disabled={isLoading || !script} className="w-full flex items-center justify-center px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-red-100 hover:bg-red-200 text-red-800 dark:text-white dark:bg-gradient-to-br dark:from-red-600 dark:to-red-700 dark:hover:from-red-700 dark:hover:to-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-900"><ClearIcon className="h-5 w-5 sm:mr-2" /><span className="hidden sm:inline">{t('buttonClear')}</span></button>
             </Tooltip>
-          ) : (
-            <Tooltip text={t('tooltipGithub')}>
-              <button
-                onClick={onToggleGithubPanel}
-                disabled={isLoading}
-                className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-200 hover:bg-gray-300 text-gray-800 dark:text-gray-200 dark:bg-gradient-to-br dark:from-gray-700 dark:to-gray-800 dark:hover:from-gray-700 dark:hover:to-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 dark:focus:ring-gray-800"
-              >
-                <GithubIcon className="h-5 w-5 mr-2" /> {t('githubSaveNewGist')}
-              </button>
+            <Tooltip text={t('tooltipUndo')}>
+                <button onClick={onUndo} disabled={isLoading || !canUndo} className={utilityButtonClasses}><UndoIcon className="h-5 w-5 sm:mr-2" /><span className="hidden sm:inline">{t('buttonUndo')}</span></button>
             </Tooltip>
-          )
-        ) : (
-             <Tooltip text={t('tooltipGithub')}>
-                <button
-                onClick={onToggleGithubPanel}
-                disabled={isLoading}
-                className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-200 hover:bg-gray-300 text-gray-800 dark:text-gray-200 dark:bg-gradient-to-br dark:from-gray-700 dark:to-gray-800 dark:hover:from-gray-700 dark:hover:to-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 dark:focus:ring-gray-800"
-                >
-                <GithubIcon className="h-5 w-5 mr-2" /> GitHub
-                </button>
+            <Tooltip text={t('tooltipRedo')}>
+                <button onClick={onRedo} disabled={isLoading || !canRedo} className={utilityButtonClasses}><RedoIcon className="h-5 w-5 sm:mr-2" /><span className="hidden sm:inline">{t('buttonRedo')}</span></button>
             </Tooltip>
-        )}
-        <div className="col-span-3 sm:col-span-2 grid grid-cols-2 gap-3">
-            <div className="relative" ref={executeButtonRef}>
-                <div className="flex w-full">
-                    <Tooltip text={t('tooltipExecute')}>
-                        <button
-                            onClick={() => { onExecute(false); setIsExecuteMenuOpen(false); }}
-                            disabled={isLoading || !script}
-                            className="flex-grow flex items-center justify-center px-4 py-2 text-sm font-medium rounded-l-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-purple-100 hover:bg-purple-200 text-purple-800 dark:text-white dark:bg-gradient-to-br dark:from-purple-600 dark:to-pink-500 dark:hover:from-purple-600 dark:hover:to-pink-500 focus:ring-4 focus:outline-none focus:ring-purple-200 dark:focus:ring-purple-800"
-                        >
-                            <ExecuteIcon className="h-5 w-5 mr-2" /> {t('buttonExecute')}
-                        </button>
-                    </Tooltip>
-                    <button
-                        onClick={() => setIsExecuteMenuOpen(!isExecuteMenuOpen)}
-                        disabled={isLoading || !script}
-                        className="px-2 bg-purple-100 hover:bg-purple-200 text-purple-800 dark:text-white dark:bg-gradient-to-br dark:from-pink-500 dark:to-pink-500 dark:hover:from-pink-500 dark:hover:to-pink-400 rounded-r-lg border-l border-purple-300 dark:border-pink-400 disabled:opacity-50 disabled:cursor-not-allowed"
-                        aria-haspopup="true"
-                        aria-expanded={isExecuteMenuOpen}
-                    >
-                        <ChevronDownIcon className="h-5 w-5" />
-                    </button>
-                </div>
-                {isExecuteMenuOpen && (
-                    <div className="absolute bottom-full mb-2 w-full bg-white dark:bg-slate-800/90 backdrop-blur-md rounded-lg shadow-2xl border border-gray-200 dark:border-white/10 z-10">
-                        <Tooltip text={t('tooltipExecuteSudo')}>
-                            <button
-                                onClick={() => { onExecute(true); setIsExecuteMenuOpen(false); }}
-                                className="w-full flex items-center px-4 py-2 text-sm text-left text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700/50 rounded-lg"
-                            >
-                                <ShieldExclamationIcon className="h-5 w-5 mr-2 text-yellow-500 dark:text-yellow-400" />
-                                {t('buttonRunWithSudo')}
-                            </button>
-                        </Tooltip>
-                    </div>
-                )}
+            <Tooltip text={t('tooltipSave')}>
+                <button onClick={onSave} disabled={isLoading} className={utilityButtonClasses}><SaveIcon className="h-5 w-5 sm:mr-2" /><span className="hidden sm:inline">{t('buttonSave')}</span></button>
+            </Tooltip>
+            <Tooltip text={t('tooltipCopyScript')}>
+                <button onClick={handleCopy} disabled={isLoading || !script || isCopied} className={`${utilityButtonClasses} ${isCopied ? 'bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-300 cursor-default' : ''}`}>{isCopied ? <CheckCircleIcon className="h-5 w-5 sm:mr-2" /> : <ClipboardIcon className="h-5 w-5 sm:mr-2" />}<span className="hidden sm:inline">{isCopied ? t('buttonCopied') : t('buttonCopy')}</span></button>
+            </Tooltip>
+            <Tooltip text={t('tooltipHistory')}>
+                <button onClick={onToggleHistoryPanel} disabled={isLoading} className={utilityButtonClasses}><HistoryIcon className="h-5 w-5 sm:mr-2" /><span className="hidden sm:inline">{t('buttonHistory')}</span></button>
+            </Tooltip>
+            {githubUser ? (
+              currentGistId ? (
+                <Tooltip text={t('tooltipSyncGist')}>
+                  <button onClick={onUpdateGist} disabled={isLoading} className={utilityButtonClasses}><GithubIcon className="h-5 w-5 sm:mr-2" /><span className="hidden sm:inline">{t('githubUpdateGist')}</span></button>
+                </Tooltip>
+              ) : (
+                <Tooltip text={t('tooltipGithub')}>
+                  <button onClick={onToggleGithubPanel} disabled={isLoading} className={utilityButtonClasses}><GithubIcon className="h-5 w-5 sm:mr-2" /><span className="hidden sm:inline">{t('githubSaveNewGist')}</span></button>
+                </Tooltip>
+              )
+            ) : (
+                <Tooltip text={t('tooltipGithub')}>
+                    <button onClick={onToggleGithubPanel} disabled={isLoading} className={utilityButtonClasses}><GithubIcon className="h-5 w-5 sm:mr-2" /><span className="hidden sm:inline">GitHub</span></button>
+                </Tooltip>
+            )}
+        </div>
+
+        <hr className="border-gray-300/50 dark:border-white/10" />
+        
+        {/* Execution Bar */}
+        <div className="grid grid-cols-5 gap-3 items-center">
+            <div className="col-span-1">
+                <Tooltip text={t('tooltipRunInTerminal')}>
+                  <button onClick={onRunInTerminal} disabled={isLoading || !script} className={utilityButtonClasses}>
+                    <RunInTerminalIcon className="h-5 w-5 mr-2" /> {t('buttonRunInTerminal')}
+                  </button>
+                </Tooltip>
             </div>
-            <Tooltip text={t('tooltipRunInTerminal')}>
-              <button
-                onClick={onRunInTerminal}
-                disabled={isLoading || !script}
-                className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-200 hover:bg-gray-300 text-gray-800 dark:text-gray-200 dark:bg-gradient-to-br dark:from-gray-600 dark:to-gray-700 dark:hover:from-gray-700 dark:hover:to-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 dark:focus:ring-gray-800"
-              >
-                <RunInTerminalIcon className="h-5 w-5 mr-2" /> {t('buttonRunInTerminal')}
-              </button>
+            <div className="col-span-3">
+                <Tooltip text={t('tooltipExecute')}>
+                    <button onClick={() => onExecute(false)} disabled={isLoading || !script} className="w-full flex items-center justify-center px-4 py-3 text-base font-bold rounded-lg transition-transform duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-purple-100 hover:bg-purple-200 text-purple-800 dark:text-white dark:bg-gradient-to-br dark:from-purple-600 dark:to-pink-500 dark:hover:from-purple-700 dark:hover:to-pink-600 focus:ring-4 focus:outline-none focus:ring-purple-200 dark:focus:ring-purple-800 shadow-lg hover:shadow-xl hover:scale-105 active:scale-100">
+                        <ExecuteIcon className="h-6 w-6 mr-2" />
+                        <span>{t('buttonExecute')}</span>
+                    </button>
+                </Tooltip>
+            </div>
+            <div className="col-span-1">
+                <Tooltip text={t('tooltipConfigureExecution')}>
+                    <button onClick={onOpenExecutionConfig} className={utilityButtonClasses}>
+                        <ConfigIcon className="h-5 w-5 mr-2" /> {t('buttonConfigureExecution')}
+                    </button>
+                </Tooltip>
+            </div>
+        </div>
+
+        <hr className="border-gray-300/50 dark:border-white/10" />
+
+        {/* AI Tools Palette */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <Tooltip text={t('tooltipAnalyze')}>
+                <button onClick={onAnalyze} disabled={isLoading || !script} className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-cyan-100 hover:bg-cyan-200 text-cyan-800 dark:text-white dark:bg-gradient-to-br dark:from-cyan-500 dark:to-blue-500 dark:hover:from-cyan-500 dark:hover:to-blue-500 focus:ring-4 focus:outline-none focus:ring-cyan-200 dark:focus:ring-cyan-800"><AnalyzeIcon className="h-5 w-5 mr-2" /> {t('buttonAnalyze')}</button>
+            </Tooltip>
+            <Tooltip text={t('tooltipImprove')}>
+                <button onClick={onImprove} disabled={isLoading || !script} className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-green-100 hover:bg-green-200 text-green-800 dark:text-white dark:bg-gradient-to-br dark:from-green-500 dark:to-teal-500 dark:hover:from-green-500 dark:hover:to-teal-500 focus:ring-4 focus:outline-none focus:ring-green-200 dark:focus:ring-green-800"><ImproveIcon className="h-5 w-5 mr-2" /> {t('buttonImprove')}</button>
+            </Tooltip>
+            <Tooltip text={t('tooltipValidate')}>
+                <button onClick={onValidate} disabled={isLoading || !script} className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-yellow-100 hover:bg-yellow-200 text-yellow-800 dark:text-white dark:bg-gradient-to-br dark:from-yellow-500 dark:to-orange-500 dark:hover:from-yellow-500 dark:hover:to-orange-500 focus:ring-4 focus:outline-none focus:ring-yellow-200 dark:focus:ring-yellow-800"><ValidateIcon className="h-5 w-5 mr-2" />{t('buttonValidate')}</button>
+            </Tooltip>
+            <Tooltip text={t('tooltipAddDocstrings')}>
+              <button onClick={onAddDocstrings} disabled={isLoading || !script} className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-blue-100 hover:bg-blue-200 text-blue-800 dark:text-white dark:bg-gradient-to-br dark:from-blue-500 dark:to-sky-500 dark:hover:from-blue-500 dark:hover:to-sky-500 focus:ring-4 focus:outline-none focus:ring-blue-200 dark:focus:ring-blue-800"><AddDocstringsIcon className="h-5 w-5 mr-2" /> {t('buttonAddDocstrings')}</button>
+            </Tooltip>
+            <Tooltip text={t('tooltipOptimizePerformance')}>
+                <button onClick={onOptimizePerformance} disabled={isLoading || !script} className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-indigo-100 hover:bg-indigo-200 text-indigo-800 dark:text-white dark:bg-gradient-to-br dark:from-indigo-500 dark:to-violet-500 dark:hover:from-indigo-500 dark:hover:to-violet-500 focus:ring-4 focus:outline-none focus:ring-indigo-200 dark:focus:ring-indigo-800"><OptimizePerformanceIcon className="h-5 w-5 mr-2" /> {t('buttonOptimizePerformance')}</button>
+            </Tooltip>
+            <Tooltip text={t('tooltipCheckSecurity')}>
+                <button onClick={onCheckSecurity} disabled={isLoading || !script} className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-red-100 hover:bg-red-200 text-red-800 dark:text-white dark:bg-gradient-to-br dark:from-red-500 dark:to-pink-500 dark:hover:from-red-500 dark:hover:to-pink-500 focus:ring-4 focus:outline-none focus:ring-red-200 dark:focus:ring-red-800"><CheckSecurityIcon className="h-5 w-5 mr-2" /> {t('buttonCheckSecurity')}</button>
+            </Tooltip>
+            <Tooltip text={t('tooltipTestApi')}>
+                <button onClick={onTestApi} disabled={isLoading || !script} className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-orange-100 hover:bg-orange-200 text-orange-800 dark:text-white dark:bg-gradient-to-br dark:from-orange-500 dark:to-amber-500 dark:hover:from-orange-500 dark:hover:to-amber-500 focus:ring-4 focus:outline-none focus:ring-orange-200 dark:focus:ring-orange-800"><TestApiIcon className="h-5 w-5 mr-2" /> {t('buttonTestApi')}</button>
             </Tooltip>
         </div>
-        <Tooltip text={t('tooltipAddDocstrings')}>
-          <button
-            onClick={onAddDocstrings}
-            disabled={isLoading || !script}
-            className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-blue-100 hover:bg-blue-200 text-blue-800 dark:text-white dark:bg-gradient-to-br dark:from-blue-500 dark:to-sky-500 dark:hover:from-blue-500 dark:hover:to-sky-500 focus:ring-4 focus:outline-none focus:ring-blue-200 dark:focus:ring-blue-800"
-          >
-            <AddDocstringsIcon className="h-5 w-5 mr-2" /> {t('buttonAddDocstrings')}
-          </button>
-        </Tooltip>
-        <Tooltip text={t('tooltipOptimizePerformance')}>
-          <button
-            onClick={onOptimizePerformance}
-            disabled={isLoading || !script}
-            className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-indigo-100 hover:bg-indigo-200 text-indigo-800 dark:text-white dark:bg-gradient-to-br dark:from-indigo-500 dark:to-violet-500 dark:hover:from-indigo-500 dark:hover:to-violet-500 focus:ring-4 focus:outline-none focus:ring-indigo-200 dark:focus:ring-indigo-800"
-          >
-            <OptimizePerformanceIcon className="h-5 w-5 mr-2" /> {t('buttonOptimizePerformance')}
-          </button>
-        </Tooltip>
-        <Tooltip text={t('tooltipCheckSecurity')}>
-          <button
-            onClick={onCheckSecurity}
-            disabled={isLoading || !script}
-            className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-red-100 hover:bg-red-200 text-red-800 dark:text-white dark:bg-gradient-to-br dark:from-red-500 dark:to-pink-500 dark:hover:from-red-500 dark:hover:to-pink-500 focus:ring-4 focus:outline-none focus:ring-red-200 dark:focus:ring-red-800"
-          >
-            <CheckSecurityIcon className="h-5 w-5 mr-2" /> {t('buttonCheckSecurity')}
-          </button>
-        </Tooltip>
-        <Tooltip text={t('tooltipTestApi')}>
-          <button
-            onClick={onTestApi}
-            disabled={isLoading || !script}
-            className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-orange-100 hover:bg-orange-200 text-orange-800 dark:text-white dark:bg-gradient-to-br dark:from-orange-500 dark:to-amber-500 dark:hover:from-orange-500 dark:hover:to-amber-500 focus:ring-4 focus:outline-none focus:ring-orange-200 dark:focus:ring-orange-800"
-          >
-            <TestApiIcon className="h-5 w-5 mr-2" /> {t('buttonTestApi')}
-          </button>
-        </Tooltip>
-        <Tooltip text={t('tooltipAnalyze')}>
-          <button
-            onClick={onAnalyze}
-            disabled={isLoading || !script}
-            className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-cyan-100 hover:bg-cyan-200 text-cyan-800 dark:text-white dark:bg-gradient-to-br dark:from-cyan-500 dark:to-blue-500 dark:hover:from-cyan-500 dark:hover:to-blue-500 focus:ring-4 focus:outline-none focus:ring-cyan-200 dark:focus:ring-cyan-800"
-          >
-            <AnalyzeIcon className="h-5 w-5 mr-2" /> {t('buttonAnalyze')}
-          </button>
-        </Tooltip>
-        <Tooltip text={t('tooltipImprove')}>
-          <button
-            onClick={onImprove}
-            disabled={isLoading || !script}
-            className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-green-100 hover:bg-green-200 text-green-800 dark:text-white dark:bg-gradient-to-br dark:from-green-500 dark:to-teal-500 dark:hover:from-green-500 dark:hover:to-teal-500 focus:ring-4 focus:outline-none focus:ring-green-200 dark:focus:ring-green-800"
-          >
-            <ImproveIcon className="h-5 w-5 mr-2" /> {t('buttonImprove')}
-          </button>
-        </Tooltip>
       </div>
     </div>
   );

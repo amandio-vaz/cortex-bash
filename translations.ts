@@ -264,6 +264,9 @@ export const translations: { [key:string]: { [key: string]: string } } = {
     chatSystemInstructionPlaceholder: 'Define the assistant\'s behavior...',
     generatorSystemInstruction: 'System Instruction',
     generatorSystemInstructionPlaceholder: 'e.g., Always use set -euo pipefail...',
+    executionConfigNotImplemented: 'Execution configuration is not yet implemented.',
+    buttonConfigureExecution: 'Configure Execution',
+    tooltipConfigureExecution: 'Set execution parameters (feature under development).',
   },
   'pt-br': {
     headerTitle: 'Cortex BashStudio',
@@ -614,5 +617,8 @@ export const translations: { [key:string]: { [key: string]: string } } = {
     chatSystemInstructionPlaceholder: 'Defina o comportamento do assistente...',
     generatorSystemInstruction: 'Instrução de Sistema',
     generatorSystemInstructionPlaceholder: 'Ex: Sempre use set -euo pipefail...',
+    executionConfigNotImplemented: 'A configuração de execução ainda não foi implementada.',
+    buttonConfigureExecution: 'Configurar Execução',
+    tooltipConfigureExecution: 'Definir parâmetros de execução (funcionalidade em desenvolvimento).',
   }
 };
