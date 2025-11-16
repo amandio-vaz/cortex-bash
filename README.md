@@ -1,6 +1,6 @@
 # Cortex BashStudio
 
-<div align="center"></div>
+<div align="center"><img  width="480" height="480" alt="Cortex BashStudio" src="https://github.com/user-attachments/assets/f1ed1d6f-ff38-4594-8040-e16993b189f8" /></div>
 
 ## Execute e implemente o App
 
