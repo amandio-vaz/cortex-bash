@@ -238,7 +238,7 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, 
 
         <div className="relative flex-grow">
           <div
-              className="absolute top-0 left-0 h-full w-full pointer-events-none"
+              className="absolute top-0 left-0 h-full w-full pointer-events-none z-0"
               style={{ transform: `translateY(-${scrollTop}px)` }}
           >
               {issues.filter(issue => issue.line !== null).map((issue, index) => (
@@ -271,21 +271,35 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, 
             spellCheck="false"
           />
           <div 
-              className="absolute top-0 left-0 h-full w-full pointer-events-none"
-              style={{ transform: `translateY(-${scrollTop}px)` }}
+              className="absolute top-0 h-full pointer-events-none"
+              style={{ 
+                left: '-28px', // Position over the gutter
+                transform: `translateY(-${scrollTop}px)`,
+                width: 'calc(100% + 28px)'
+              }}
           >
-              {issues.filter(issue => issue.line !== null).map((issue, index) => (
-                  <div
-                      key={index}
-                      className="absolute left-2 group pointer-events-auto z-20"
-                      style={{ top: `${PADDING_TOP + (issue.line! - 1) * LINE_HEIGHT}px` }}
-                  >
-                      <SeverityIcon severity={issue.severity} />
-                      <div className="absolute left-full ml-2 w-max max-w-xs bg-gray-800/90 dark:bg-black/60 backdrop-blur-md text-white text-xs rounded-md py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-30 border border-gray-600 dark:border-white/10 shadow-lg">
-                          {`[${issue.severity.toUpperCase()}] ${issue.message}`}
+              {issues.map((issue, index) => {
+                  const issuesForLine = issues.filter(i => i.line === issue.line);
+                  if (issues.findIndex(i => i.line === issue.line) !== index) {
+                      return null; // Render only one icon per line
+                  }
+                  if (issue.line === null) return null;
+                  
+                  return (
+                      <div
+                          key={`${issue.line}-${index}`}
+                          className="absolute left-4 group pointer-events-auto z-20"
+                          style={{ top: `${PADDING_TOP + (issue.line - 1) * LINE_HEIGHT + 2}px` }}
+                      >
+                          <SeverityIcon severity={issue.severity} />
+                          <div className="absolute left-full ml-2 w-max max-w-xs bg-gray-800/90 dark:bg-black/60 backdrop-blur-md text-white text-xs rounded-md py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-30 border border-gray-600 dark:border-white/10 shadow-lg">
+                              {issuesForLine.map((i, idx) => (
+                                <div key={idx}>{`[${i.severity.toUpperCase()}] ${i.message}`}</div>
+                              ))}
+                          </div>
                       </div>
-                  </div>
-              ))}
+                  )
+              })}
           </div>
         </div>
       </div>

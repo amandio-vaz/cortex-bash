@@ -267,6 +267,8 @@ export const translations: { [key:string]: { [key: string]: string } } = {
     executionConfigNotImplemented: 'Execution configuration is not yet implemented.',
     buttonConfigureExecution: 'Configure Execution',
     tooltipConfigureExecution: 'Set execution parameters (feature under development).',
+    tooltipScrollTop: 'Scroll to Top',
+    tooltipScrollBottom: 'Scroll to Bottom',
   },
   'pt-br': {
     headerTitle: 'Cortex BashStudio',
@@ -620,5 +622,7 @@ export const translations: { [key:string]: { [key: string]: string } } = {
     executionConfigNotImplemented: 'A configuração de execução ainda não foi implementada.',
     buttonConfigureExecution: 'Configurar Execução',
     tooltipConfigureExecution: 'Definir parâmetros de execução (funcionalidade em desenvolvimento).',
+    tooltipScrollTop: 'Rolar para o Topo',
+    tooltipScrollBottom: 'Rolar para o Fim',
   }
 };
