@@ -4,7 +4,7 @@ import { useIconContext } from '../context/IconContext';
 import Tooltip from './Tooltip';
 import CommandPalette, { Command } from './CommandPalette';
 import { ValidationIssue } from '../types';
-import { ArrowsPointingOutIcon, ArrowsPointingInIcon, SaveIcon, HistoryIcon, ChevronDownIcon, ShieldExclamationIcon, ClipboardIcon, CheckCircleIcon, GithubIcon } from '../icons';
+import { ArrowsPointingOutIcon, ArrowsPointingInIcon, SaveIcon, HistoryIcon, ChevronDownIcon, ShieldExclamationIcon, ClipboardIcon, CheckCircleIcon, GithubIcon, UndoIcon, RedoIcon } from '../icons';
 import { useEditorTheme } from '../context/EditorThemeContext';
 
 const SeverityIcon: React.FC<{ severity: 'error' | 'warning' | 'performance' }> = ({ severity }) => {
@@ -32,6 +32,10 @@ interface ScriptEditorProps {
   script: string;
   setScript: (script: string) => void;
   onSave: () => void;
+  onUndo: () => void;
+  onRedo: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
   onAnalyze: () => void;
   onImprove: () => void;
   onValidate: () => void;
@@ -49,7 +53,7 @@ interface ScriptEditorProps {
   onCheckSecurity: () => void;
 }
 
-const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, onAnalyze, onImprove, onValidate, onExecute, onAutoValidate, onToggleHistoryPanel, onToggleGithubPanel, isLoading, showSaveNotification, issues, isFullscreen, onToggleFullscreen, onAddDocstrings, onOptimizePerformance, onCheckSecurity }) => {
+const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, onUndo, onRedo, canUndo, canRedo, onAnalyze, onImprove, onValidate, onExecute, onAutoValidate, onToggleHistoryPanel, onToggleGithubPanel, isLoading, showSaveNotification, issues, isFullscreen, onToggleFullscreen, onAddDocstrings, onOptimizePerformance, onCheckSecurity }) => {
   const { t } = useLanguage();
   const { getIconComponent } = useIconContext();
   const { theme } = useEditorTheme();
@@ -238,6 +242,24 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, 
         </div>
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
+        <Tooltip text={t('tooltipUndo')}>
+          <button
+            onClick={onUndo}
+            disabled={isLoading || !canUndo}
+            className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-200 hover:bg-gray-300 text-gray-800 dark:text-gray-200 dark:bg-gradient-to-br dark:from-gray-500 dark:to-gray-600 dark:hover:from-gray-500 dark:hover:to-gray-600 focus:ring-4 focus:outline-none focus:ring-gray-300 dark:focus:ring-gray-800"
+          >
+            <UndoIcon className="h-5 w-5 mr-2" /> {t('buttonUndo')}
+          </button>
+        </Tooltip>
+        <Tooltip text={t('tooltipRedo')}>
+          <button
+            onClick={onRedo}
+            disabled={isLoading || !canRedo}
+            className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-200 hover:bg-gray-300 text-gray-800 dark:text-gray-200 dark:bg-gradient-to-br dark:from-gray-500 dark:to-gray-600 dark:hover:from-gray-500 dark:hover:to-gray-600 focus:ring-4 focus:outline-none focus:ring-gray-300 dark:focus:ring-gray-800"
+          >
+            <RedoIcon className="h-5 w-5 mr-2" /> {t('buttonRedo')}
+          </button>
+        </Tooltip>
         <Tooltip text={t('tooltipSave')}>
           <button
             onClick={onSave}

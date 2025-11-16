@@ -16,15 +16,86 @@ import { useLanguage } from './context/LanguageContext';
 import { useIconContext } from './context/IconContext';
 
 const MAX_HISTORY_ENTRIES = 20;
+const INITIAL_SCRIPT = '#!/bin/bash\n\n# Bem-vindo ao BashStudio!\n# Escreva seu script aqui ou descreva um para ser gerado.\n\necho "Olá, Mundo!"';
+
+// --- Undo/Redo Hook ---
+type UndoRedoState<T> = {
+  past: T[];
+  present: T;
+  future: T[];
+};
+
+// FIX: Updated hook to support lazy initialization for the initial state.
+// This allows passing a function to compute the initial value, which is useful
+// for expensive operations like reading from localStorage, ensuring it only runs once.
+const useUndoRedo = <T,>(initialPresent: T | (() => T)) => {
+  const [state, setState] = useState<UndoRedoState<T>>(() => {
+    const present =
+      typeof initialPresent === 'function'
+        ? (initialPresent as () => T)()
+        : initialPresent;
+    return {
+      past: [],
+      present,
+      future: [],
+    };
+  });
+
+  const canUndo = state.past.length > 0;
+  const canRedo = state.future.length > 0;
+
+  const undo = useCallback(() => {
+    if (!canUndo) return;
+    const previous = state.past[state.past.length - 1];
+    const newPast = state.past.slice(0, state.past.length - 1);
+    setState({
+      past: newPast,
+      present: previous,
+      future: [state.present, ...state.future],
+    });
+  }, [canUndo, state]);
+
+  const redo = useCallback(() => {
+    if (!canRedo) return;
+    const next = state.future[0];
+    const newFuture = state.future.slice(1);
+    setState({
+      past: [...state.past, state.present],
+      present: next,
+      future: newFuture,
+    });
+  }, [canRedo, state]);
+
+  const set = useCallback((newPresent: T) => {
+    if (newPresent === state.present) return;
+    setState({
+      past: [...state.past, state.present],
+      present: newPresent,
+      future: [],
+    });
+  }, [state.present, state.past]);
+  
+  const reset = useCallback((newPresent: T) => {
+    setState({
+      past: [],
+      present: newPresent,
+      future: [],
+    });
+  }, []);
+
+  return [state.present, { set, undo, redo, reset, canUndo, canRedo }] as const;
+};
+
 
 const App: React.FC = () => {
   const { t } = useLanguage();
   const { getIconComponent } = useIconContext();
 
-  const [script, setScript] = useState<string>(() => {
+  const [script, { set: setScript, undo, redo, reset: resetScript, canUndo, canRedo }] = useUndoRedo<string>(() => {
     const savedScript = localStorage.getItem('bashstudio-script');
-    return savedScript || '#!/bin/bash\n\n# Bem-vindo ao BashStudio!\n# Escreva seu script aqui ou descreva um para ser gerado.\n\necho "Olá, Mundo!"';
+    return savedScript || INITIAL_SCRIPT;
   });
+
   const [result, setResult] = useState<string>('');
   const [resultTitle, setResultTitle] = useState<string>(t('tabAssistant'));
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -96,21 +167,51 @@ const App: React.FC = () => {
 
   }, [script]);
 
+  // Keyboard shortcuts for save, undo, redo
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const isMac = navigator.userAgent.includes('Mac');
+      const modKey = isMac ? event.metaKey : event.ctrlKey;
+
+      if (modKey && event.key === 's') {
+        event.preventDefault();
+        handleSaveScript();
+      } else if (modKey && event.key.toLowerCase() === 'z') {
+        event.preventDefault();
+        if (event.shiftKey) {
+          redo();
+        } else {
+          undo();
+        }
+      } else if (!isMac && event.ctrlKey && event.key.toLowerCase() === 'y') {
+        event.preventDefault();
+        redo();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [handleSaveScript, undo, redo]);
+
   const handleRestoreScript = (content: string) => {
-    setScript(content);
+    resetScript(content);
     setCurrentGistId(null);
     setIsHistoryPanelOpen(false);
   };
-
+  
+  // Debounced auto-save mechanism
   useEffect(() => {
-    const autoSaveInterval = setInterval(() => {
-      const currentScript = scriptRef.current;
-      if (currentScript !== '#!/bin/bash\n\n# Bem-vindo ao BashStudio!\n# Escreva seu script aqui ou descreva um para ser gerado.\n\necho "Olá, Mundo!"' && currentScript) {
+    const autoSaveTimeout = setTimeout(() => {
+      if (script && script !== INITIAL_SCRIPT) {
         handleSaveScript();
       }
-    }, 30000);
-    return () => clearInterval(autoSaveInterval);
-  }, [handleSaveScript]);
+    }, 2000); // Auto-saves 2 seconds after the user stops typing
+
+    return () => clearTimeout(autoSaveTimeout);
+  }, [script, handleSaveScript]);
+
 
   useEffect(() => {
     if (tabContainerRef.current) {
@@ -153,7 +254,7 @@ const App: React.FC = () => {
     if (bashFile) {
         try {
             const content = await getGistContent(bashFile.raw_url, githubToken);
-            setScript(content);
+            resetScript(content);
             setCurrentGistId(gist.id);
             setIsGithubPanelOpen(false);
         } catch (error) {
@@ -305,7 +406,7 @@ const App: React.FC = () => {
           report += `\n\n---\n\n### ${t('originalGenerationTitle')}\n\n`;
         }
         if (validation.isValid) {
-          setScript(extractedScript);
+          resetScript(extractedScript);
           setCurrentGistId(null);
           const successMsg = validation.issues.length === 0 ? `**${t('validationPassedMessage')}**\n\n` : '';
           setResult(successMsg + report + genResponse);
@@ -324,7 +425,7 @@ const App: React.FC = () => {
   };
 
   const handleAddDocstrings = () => handleApiCall(addDocstrings, script, 'docstringsTitle', false, (response: string) => {
-      setScript(response);
+      resetScript(response);
       setCurrentGistId(null);
       setResult(`**${t('docstringsTitle')}**\n\n${t('docstringsSuccessMessage')}`);
       setResultTitle(t('docstringsTitle'));
@@ -379,6 +480,10 @@ const App: React.FC = () => {
             script={script}
             setScript={handleScriptChange}
             onSave={handleSaveScript}
+            onUndo={undo}
+            onRedo={redo}
+            canUndo={canUndo}
+            canRedo={canRedo}
             onAnalyze={handleAnalyze}
             onImprove={handleImprove}
             onValidate={handleValidate}
