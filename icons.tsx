@@ -267,6 +267,10 @@ export const ICON_LIBRARY: Record<CustomizableAction, Record<string, React.FC<Ic
     'Terminal': TerminalIcon,
     'CommandLine': CommandLineIcon,
   },
+  runInTerminal: {
+    'Terminal': TerminalIcon,
+    'CommandLine': CommandLineIcon,
+  },
   assistantTab: {
     'Sparkles': SparklesIcon,
     'Robot': RobotIcon,
@@ -313,6 +317,7 @@ export const DEFAULT_ICONS: Record<CustomizableAction, string> = {
     improve: 'Check',
     validate: 'ShieldCheck',
     execute: 'Terminal',
+    runInTerminal: 'CommandLine',
     assistantTab: 'Sparkles',
     generatorTab: 'LightningBolt',
     chatTab: 'Chat',

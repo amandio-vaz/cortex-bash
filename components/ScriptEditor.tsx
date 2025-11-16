@@ -53,12 +53,13 @@ interface ScriptEditorProps {
   onCheckSecurity: () => void;
   onTestApi: () => void;
   onClearScript: () => void;
+  onRunInTerminal: () => void;
   githubUser: GithubUser | null;
   currentGistId: string | null;
   onUpdateGist: () => void;
 }
 
-const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, onUndo, onRedo, canUndo, canRedo, onAnalyze, onImprove, onValidate, onExecute, onAutoValidate, onToggleHistoryPanel, onToggleGithubPanel, isLoading, notificationMessage, issues, isFullscreen, onToggleFullscreen, onAddDocstrings, onOptimizePerformance, onCheckSecurity, onTestApi, onClearScript, githubUser, currentGistId, onUpdateGist }) => {
+const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, onUndo, onRedo, canUndo, canRedo, onAnalyze, onImprove, onValidate, onExecute, onAutoValidate, onToggleHistoryPanel, onToggleGithubPanel, isLoading, notificationMessage, issues, isFullscreen, onToggleFullscreen, onAddDocstrings, onOptimizePerformance, onCheckSecurity, onTestApi, onClearScript, onRunInTerminal, githubUser, currentGistId, onUpdateGist }) => {
   const { t } = useLanguage();
   const { getIconComponent } = useIconContext();
   const { theme } = useEditorTheme();
@@ -123,6 +124,7 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, 
   const ValidateIcon = getIconComponent('validate');
   const ImproveIcon = getIconComponent('improve');
   const ExecuteIcon = getIconComponent('execute');
+  const RunInTerminalIcon = getIconComponent('runInTerminal');
   const AddDocstringsIcon = getIconComponent('addDocstrings');
   const OptimizePerformanceIcon = getIconComponent('optimizePerformance');
   const CheckSecurityIcon = getIconComponent('checkSecurity');
@@ -342,40 +344,51 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ script, setScript, onSave, 
                 </button>
             </Tooltip>
         )}
-        <div className="relative col-span-2 sm:col-span-1" ref={executeButtonRef}>
-            <div className="flex w-full">
-                <Tooltip text={t('tooltipExecute')}>
-                    <button
-                        onClick={() => { onExecute(false); setIsExecuteMenuOpen(false); }}
-                        disabled={isLoading || !script}
-                        className="flex-grow flex items-center justify-center px-4 py-2 text-sm font-medium rounded-l-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-purple-100 hover:bg-purple-200 text-purple-800 dark:text-white dark:bg-gradient-to-br dark:from-purple-600 dark:to-pink-500 dark:hover:from-purple-600 dark:hover:to-pink-500 focus:ring-4 focus:outline-none focus:ring-purple-200 dark:focus:ring-purple-800"
-                    >
-                        <ExecuteIcon className="h-5 w-5 mr-2" /> {t('buttonExecute')}
-                    </button>
-                </Tooltip>
-                <button
-                    onClick={() => setIsExecuteMenuOpen(!isExecuteMenuOpen)}
-                    disabled={isLoading || !script}
-                    className="px-2 bg-purple-100 hover:bg-purple-200 text-purple-800 dark:text-white dark:bg-gradient-to-br dark:from-pink-500 dark:to-pink-500 dark:hover:from-pink-500 dark:hover:to-pink-400 rounded-r-lg border-l border-purple-300 dark:border-pink-400 disabled:opacity-50 disabled:cursor-not-allowed"
-                    aria-haspopup="true"
-                    aria-expanded={isExecuteMenuOpen}
-                >
-                    <ChevronDownIcon className="h-5 w-5" />
-                </button>
-            </div>
-            {isExecuteMenuOpen && (
-                <div className="absolute bottom-full mb-2 w-full bg-white dark:bg-slate-800/90 backdrop-blur-md rounded-lg shadow-2xl border border-gray-200 dark:border-white/10 z-10">
-                    <Tooltip text={t('tooltipExecuteSudo')}>
+        <div className="col-span-3 sm:col-span-2 grid grid-cols-2 gap-3">
+            <div className="relative" ref={executeButtonRef}>
+                <div className="flex w-full">
+                    <Tooltip text={t('tooltipExecute')}>
                         <button
-                            onClick={() => { onExecute(true); setIsExecuteMenuOpen(false); }}
-                            className="w-full flex items-center px-4 py-2 text-sm text-left text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700/50 rounded-lg"
+                            onClick={() => { onExecute(false); setIsExecuteMenuOpen(false); }}
+                            disabled={isLoading || !script}
+                            className="flex-grow flex items-center justify-center px-4 py-2 text-sm font-medium rounded-l-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-purple-100 hover:bg-purple-200 text-purple-800 dark:text-white dark:bg-gradient-to-br dark:from-purple-600 dark:to-pink-500 dark:hover:from-purple-600 dark:hover:to-pink-500 focus:ring-4 focus:outline-none focus:ring-purple-200 dark:focus:ring-purple-800"
                         >
-                            <ShieldExclamationIcon className="h-5 w-5 mr-2 text-yellow-500 dark:text-yellow-400" />
-                            {t('buttonRunWithSudo')}
+                            <ExecuteIcon className="h-5 w-5 mr-2" /> {t('buttonExecute')}
                         </button>
                     </Tooltip>
+                    <button
+                        onClick={() => setIsExecuteMenuOpen(!isExecuteMenuOpen)}
+                        disabled={isLoading || !script}
+                        className="px-2 bg-purple-100 hover:bg-purple-200 text-purple-800 dark:text-white dark:bg-gradient-to-br dark:from-pink-500 dark:to-pink-500 dark:hover:from-pink-500 dark:hover:to-pink-400 rounded-r-lg border-l border-purple-300 dark:border-pink-400 disabled:opacity-50 disabled:cursor-not-allowed"
+                        aria-haspopup="true"
+                        aria-expanded={isExecuteMenuOpen}
+                    >
+                        <ChevronDownIcon className="h-5 w-5" />
+                    </button>
                 </div>
-            )}
+                {isExecuteMenuOpen && (
+                    <div className="absolute bottom-full mb-2 w-full bg-white dark:bg-slate-800/90 backdrop-blur-md rounded-lg shadow-2xl border border-gray-200 dark:border-white/10 z-10">
+                        <Tooltip text={t('tooltipExecuteSudo')}>
+                            <button
+                                onClick={() => { onExecute(true); setIsExecuteMenuOpen(false); }}
+                                className="w-full flex items-center px-4 py-2 text-sm text-left text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700/50 rounded-lg"
+                            >
+                                <ShieldExclamationIcon className="h-5 w-5 mr-2 text-yellow-500 dark:text-yellow-400" />
+                                {t('buttonRunWithSudo')}
+                            </button>
+                        </Tooltip>
+                    </div>
+                )}
+            </div>
+            <Tooltip text={t('tooltipRunInTerminal')}>
+              <button
+                onClick={onRunInTerminal}
+                disabled={isLoading || !script}
+                className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-200 hover:bg-gray-300 text-gray-800 dark:text-gray-200 dark:bg-gradient-to-br dark:from-gray-600 dark:to-gray-700 dark:hover:from-gray-700 dark:hover:to-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 dark:focus:ring-gray-800"
+              >
+                <RunInTerminalIcon className="h-5 w-5 mr-2" /> {t('buttonRunInTerminal')}
+              </button>
+            </Tooltip>
         </div>
         <Tooltip text={t('tooltipAddDocstrings')}>
           <button

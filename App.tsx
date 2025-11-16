@@ -175,6 +175,16 @@ const App: React.FC = () => {
 
   }, [script, t]);
 
+  const handleRunInTerminal = useCallback(() => {
+    navigator.clipboard.writeText(script)
+      .then(() => {
+        setNotificationMessage(t('runInTerminalNotification'));
+      })
+      .catch(err => {
+        console.error('Failed to copy script to clipboard:', err);
+      });
+  }, [script, t]);
+
   const handleClearScript = () => resetScript('');
 
   // Keyboard shortcuts for save, undo, redo
@@ -515,6 +525,7 @@ const App: React.FC = () => {
             onCheckSecurity={handleCheckSecurity}
             onTestApi={handleTestApi}
             onClearScript={handleClearScript}
+            onRunInTerminal={handleRunInTerminal}
             githubUser={githubUser}
             currentGistId={currentGistId}
             onUpdateGist={handleUpdateGist}

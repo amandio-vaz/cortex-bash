@@ -27,6 +27,7 @@ export type CustomizableAction =
   | 'improve' 
   | 'validate' 
   | 'execute'
+  | 'runInTerminal'
   | 'assistantTab' 
   | 'generatorTab' 
   | 'chatTab'

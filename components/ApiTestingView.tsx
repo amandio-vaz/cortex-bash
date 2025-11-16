@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { useEditorTheme } from '../context/EditorThemeContext';
 import { KNOWLEDGE_BASE_DATA } from '../data/knowledgeBase';
@@ -59,7 +59,33 @@ const ApiTestingView: React.FC = () => {
     const [url, setUrl] = useState('https://api.github.com/users/google');
     const [headers, setHeaders] = useState<{key: string, value: string}[]>([{ key: 'Content-Type', value: 'application/json' }]);
     const [body, setBody] = useState('{\n  "key": "value"\n}');
+    const [jsonError, setJsonError] = useState<string | null>(null);
     const webhookPort = '8080';
+
+    useEffect(() => {
+        const isJson = headers.some(
+            h => h.key.toLowerCase() === 'content-type' && h.value.toLowerCase().includes('application/json')
+        );
+
+        if (isJson) {
+            if (!body.trim()) {
+                setJsonError(null);
+                return;
+            }
+            try {
+                JSON.parse(body);
+                setJsonError(null);
+            } catch (e) {
+                if (e instanceof Error) {
+                    setJsonError(t('apiInvalidJson') + e.message);
+                } else {
+                    setJsonError(t('apiInvalidJsonGeneric'));
+                }
+            }
+        } else {
+            setJsonError(null);
+        }
+    }, [body, headers, t]);
 
     const handleHeaderChange = (index: number, field: 'key' | 'value', value: string) => {
         const newHeaders = [...headers];
@@ -117,7 +143,13 @@ const ApiTestingView: React.FC = () => {
                         {['POST', 'PUT', 'PATCH'].includes(method) && (
                            <div>
                                 <label className="block text-sm font-medium mb-1" style={{ color: theme.colors.resultText }}>{t('apiRequestBody')}</label>
-                                <textarea value={body} onChange={e => setBody(e.target.value)} rows={4} className="w-full font-mono p-2 rounded-md border border-gray-300 dark:border-slate-700 focus:ring-2 focus:ring-cyan-500/50 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-200 resize-y"></textarea>
+                                <textarea 
+                                    value={body} 
+                                    onChange={e => setBody(e.target.value)} 
+                                    rows={4} 
+                                    className={`w-full font-mono p-2 rounded-md border ${jsonError ? 'border-red-500 focus:ring-red-500/50' : 'border-gray-300 dark:border-slate-700 focus:ring-cyan-500/50'} bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-200 resize-y transition-colors`}
+                                />
+                                {jsonError && <p className="text-sm text-red-500 dark:text-red-400 mt-1">{jsonError}</p>}
                            </div>
                         )}
                         <div>

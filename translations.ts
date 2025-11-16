@@ -160,6 +160,9 @@ export const translations: { [key:string]: { [key: string]: string } } = {
     // Command Palette
     commandPaletteTitle: 'Command Palette',
     commandPalettePlaceholder: 'Type a command to run...',
+    buttonRunInTerminal: 'Run in Terminal',
+    tooltipRunInTerminal: 'Copies the script to your clipboard to run in your local terminal.',
+    runInTerminalNotification: 'Script copied! Now paste it into your terminal.',
 
     // --- New File Templates ---
     template_bulkRename_name: 'Bulk Rename',
@@ -258,6 +261,8 @@ export const translations: { [key:string]: { [key: string]: string } } = {
     template_bearerAuth_desc: 'Demonstrates how to make an authenticated API request using a bearer token.',
     template_sendWebhook_name: 'Send Webhook Payload',
     template_sendWebhook_desc: 'Sends a sample JSON payload to a specified webhook URL.',
+    apiInvalidJson: 'Invalid JSON: ',
+    apiInvalidJsonGeneric: 'Invalid JSON format.',
   },
   'pt-br': {
     headerTitle: 'Cortex BashStudio',
@@ -420,6 +425,9 @@ export const translations: { [key:string]: { [key: string]: string } } = {
     // Paleta de Comandos
     commandPaletteTitle: 'Paleta de Comandos',
     commandPalettePlaceholder: 'Digite um comando para executar...',
+    buttonRunInTerminal: 'Executar no Terminal',
+    tooltipRunInTerminal: 'Copia o script para a área de transferência para executar no seu terminal local.',
+    runInTerminalNotification: 'Script copiado! Agora cole no seu terminal.',
 
     // --- Novos Templates de Arquivo ---
     template_bulkRename_name: 'Renomear em Massa',
@@ -602,5 +610,7 @@ export const translations: { [key:string]: { [key: string]: string } } = {
     webhookNgronkCmd: '2. Exponha sua porta para a web:',
     webhookNgronkDesc: 'Use o ngrok para criar um túnel público para sua porta local. Forneça a URL gerada para o serviço de webhook.',
     quickRefTitle: 'Referência Rápida',
+    apiInvalidJson: 'JSON inválido: ',
+    apiInvalidJsonGeneric: 'Formato JSON inválido.',
   }
 };

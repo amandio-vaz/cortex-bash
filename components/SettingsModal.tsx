@@ -15,6 +15,7 @@ const actionLabels: Record<CustomizableAction, string> = {
     improve: 'Improve Button',
     validate: 'Validate Button',
     execute: 'Execute Button',
+    runInTerminal: 'Run in Terminal Button',
     assistantTab: 'Assistant Tab',
     generatorTab: 'Generator Tab',
     chatTab: 'Chat Tab',
