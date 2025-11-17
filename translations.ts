@@ -1,7 +1,7 @@
 export const translations: { [key:string]: { [key: string]: string } } = {
   en: {
     headerTitle: 'Cortex BashStudio',
-    headerSubtitle: 'Bash Script Generation, Analysis, and Validation in the Agentic Era',
+    headerSubtitle: 'Generation, Analysis, and Validation of Bash Scripts, YAML/YML, and JSON Files, of the Agentic Era',
     tabAssistant: 'AI Assistant',
     tabChatbot: 'Chatbot',
     tabGenerator: 'Generator',
@@ -405,10 +405,18 @@ export const translations: { [key:string]: { [key: string]: string } } = {
     guideUseCase: 'Use Case',
     guideCommands: 'Commands / Steps',
     knowledgeUpdateCheckNotification: 'Knowledge Base & Guides checked for updates.',
+    // Docker Sub-categories
+    dockerSubCategoryCore: 'Core Infrastructure',
+    dockerSubCategoryDatabases: 'Databases',
+    dockerSubCategoryObservability: 'Observability & Monitoring',
+    dockerSubCategoryApps: 'Apps & Development',
+    dockerSubCategoryBackupS3: 'Backup & S3',
+    dockerSubCategoryOS: 'Operating Systems',
+    dockerSubCategorySecurity: 'Security',
   },
   'pt-br': {
     headerTitle: 'Cortex BashStudio',
-    headerSubtitle: 'Geração, Análise e Validação de Scripts Bash, na era Agêntica',
+    headerSubtitle: 'Geração, Análise e Validação de Scripts Bash, Arquivos nos Formatos YAML/YML e JSON, da era Agêntica',
     tabAssistant: 'Assistente IA',
     tabChatbot: 'Chatbot',
     tabGenerator: 'Gerador',
@@ -812,5 +820,13 @@ export const translations: { [key:string]: { [key: string]: string } } = {
     guideUseCase: 'Caso de Uso',
     guideCommands: 'Comandos / Passos',
     knowledgeUpdateCheckNotification: 'Base de Conhecimento e Guias verificados para atualizações.',
+    // Sub-categorias Docker
+    dockerSubCategoryCore: 'Infraestrutura Essencial',
+    dockerSubCategoryDatabases: 'Bancos de Dados',
+    dockerSubCategoryObservability: 'Observabilidade & Monitoramento',
+    dockerSubCategoryApps: 'Aplicações & Desenvolvimento',
+    dockerSubCategoryBackupS3: 'Backup & S3',
+    dockerSubCategoryOS: 'Sistemas Operacionais',
+    dockerSubCategorySecurity: 'Segurança',
   }
 };
