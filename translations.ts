@@ -390,6 +390,8 @@ export const translations: { [key:string]: { [key: string]: string } } = {
     authSwitchToRegister: "Don't have an account? Sign up",
     authSwitchToLogin: 'Already have an account? Log in',
     tooltipLogin: 'Login or create an account',
+    authErrorInvalidEmail: 'Please enter a valid email address.',
+    authErrorPasswordLength: 'Password must be at least 6 characters long.',
     // Deployment Guides
     deploymentGuidesTitle: 'Deployment Guides',
     deploymentGuidesCategoryApt: 'APT Install',
@@ -795,6 +797,8 @@ export const translations: { [key:string]: { [key: string]: string } } = {
     authSwitchToRegister: 'Não tem uma conta? Cadastre-se',
     authSwitchToLogin: 'Já tem uma conta? Faça login',
     tooltipLogin: 'Faça login ou crie uma conta',
+    authErrorInvalidEmail: 'Por favor, insira um endereço de e-mail válido.',
+    authErrorPasswordLength: 'A senha deve ter pelo menos 6 caracteres.',
     // Guias de Deploy
     deploymentGuidesTitle: 'Guias de Deploy',
     deploymentGuidesCategoryApt: 'APT Install',

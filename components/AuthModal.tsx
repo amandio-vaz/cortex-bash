@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
-import { ICON_LIBRARY } from '../icons';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -15,10 +14,45 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [validationErrors, setValidationErrors] = useState({ email: '', password: '' });
+
+  // Reset state when modal is opened
+  useEffect(() => {
+    if (isOpen) {
+      setEmail('');
+      setPassword('');
+      setError('');
+      setValidationErrors({ email: '', password: '' });
+      setIsLoginView(true); // Default to login view
+    }
+  }, [isOpen]);
+
+  const validateForm = () => {
+    const newErrors = { email: '', password: '' };
+    let isValid = true;
+
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      newErrors.email = t('authErrorInvalidEmail');
+      isValid = false;
+    }
+
+    // Only check password length for registration for better login UX, or for both
+    if (password.length < 6) {
+      newErrors.password = t('authErrorPasswordLength');
+      isValid = false;
+    }
+
+    setValidationErrors(newErrors);
+    return isValid;
+  };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    if (!validateForm()) {
+      return;
+    }
 
     const action = isLoginView ? login : register;
     const success = await action(email, password);
@@ -28,6 +62,12 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     } else {
       setError('Authentication failed. Please try again.'); // Generic error
     }
+  };
+
+  const handleSwitchView = () => {
+    setIsLoginView(!isLoginView);
+    setError('');
+    setValidationErrors({ email: '', password: '' });
   };
   
   const title = isLoginView ? t('authModalTitleLogin') : t('authModalTitleRegister');
@@ -54,7 +94,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
           </button>
         </header>
         
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4" noValidate>
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t('authEmailLabel')}</label>
             <input
@@ -63,8 +103,9 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
               value={email}
               onChange={e => setEmail(e.target.value)}
               required
-              className="mt-1 block w-full px-3 py-2 bg-white dark:bg-slate-800/60 border border-gray-300 dark:border-slate-700 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm"
+              className={`mt-1 block w-full px-3 py-2 bg-white dark:bg-slate-800/60 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none sm:text-sm ${validationErrors.email ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 dark:border-slate-700 focus:ring-cyan-500 focus:border-cyan-500'}`}
             />
+             {validationErrors.email && <p className="mt-1 text-xs text-red-500">{validationErrors.email}</p>}
           </div>
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t('authPasswordLabel')}</label>
@@ -74,8 +115,9 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
               value={password}
               onChange={e => setPassword(e.target.value)}
               required
-              className="mt-1 block w-full px-3 py-2 bg-white dark:bg-slate-800/60 border border-gray-300 dark:border-slate-700 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm"
+              className={`mt-1 block w-full px-3 py-2 bg-white dark:bg-slate-800/60 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none sm:text-sm ${validationErrors.password ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 dark:border-slate-700 focus:ring-cyan-500 focus:border-cyan-500'}`}
             />
+            {validationErrors.password && <p className="mt-1 text-xs text-red-500">{validationErrors.password}</p>}
           </div>
           {error && <p className="text-sm text-red-500">{error}</p>}
           <div>
@@ -88,7 +130,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
             </button>
           </div>
           <div className="text-center">
-            <button type="button" onClick={() => { setIsLoginView(!isLoginView); setError(''); }} className="text-sm text-cyan-600 hover:underline dark:text-cyan-400">
+            <button type="button" onClick={handleSwitchView} className="text-sm text-cyan-600 hover:underline dark:text-cyan-400">
               {switchButtonText}
             </button>
           </div>
