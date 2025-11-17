@@ -1,5 +1,5 @@
 {
-  "name": "Cortex BashStudio",
+  "name": "Cortex BashStudio v1.0",
   "description": "An AI-powered environment to generate, analyze, and improve your Bash scripts with Google Gemini. Features a script editor with AI analysis, a smart refactoring tool, a powerful script generator with 'thinking mode', and an integrated chatbot for all your Bash-related questions.",
   "requestFramePermissions": []
 }

@@ -133,13 +133,7 @@ export interface DeploymentGuide {
 
 export interface DeploymentCategory {
   displayName: string;
-  guides?: DeploymentGuide[];
-  subCategories?: {
-    [key: string]: {
-      displayName: string;
-      guides: DeploymentGuide[];
-    };
-  };
+  guides: DeploymentGuide[];
 }
 
 

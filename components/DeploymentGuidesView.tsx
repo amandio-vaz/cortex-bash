@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { DEPLOYMENT_GUIDES_DATA } from '../data/deploymentGuides';
 import { DeploymentGuide } from '../types';
@@ -75,26 +75,8 @@ const DeploymentGuidesView: React.FC = () => {
     const { t } = useLanguage();
     const categories = Object.keys(DEPLOYMENT_GUIDES_DATA);
     const [activeCategory, setActiveCategory] = useState(categories[0]);
-    const [activeSubCategory, setActiveSubCategory] = useState<string | null>(null);
-  
-    const activeCategoryData = DEPLOYMENT_GUIDES_DATA[activeCategory];
-    const hasSubCategories = !!activeCategoryData.subCategories;
-  
-    useEffect(() => {
-      if (hasSubCategories && activeCategoryData.subCategories) {
-        setActiveSubCategory(Object.keys(activeCategoryData.subCategories)[0]);
-      } else {
-        setActiveSubCategory(null);
-      }
-    }, [activeCategory, hasSubCategories, activeCategoryData.subCategories]);
-  
-    const activeGuides = useMemo(() => {
-      if (!activeCategoryData) return [];
-      if (hasSubCategories && activeSubCategory && activeCategoryData.subCategories) {
-        return activeCategoryData.subCategories[activeSubCategory]?.guides || [];
-      }
-      return activeCategoryData.guides || [];
-    }, [activeCategoryData, hasSubCategories, activeSubCategory]);
+
+    const activeGuides = DEPLOYMENT_GUIDES_DATA[activeCategory]?.guides || [];
 
     return (
         <div className="bg-white/60 dark:bg-black/20 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-xl flex flex-col h-full p-4 shadow-lg dark:shadow-2xl dark:shadow-black/20">
@@ -102,12 +84,12 @@ const DeploymentGuidesView: React.FC = () => {
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-200">{t('deploymentGuidesTitle')}</h2>
             </div>
             
-            <div className="flex border-b border-gray-300 dark:border-white/10 flex-shrink-0 overflow-x-auto">
+            <div className="flex border-b border-gray-300 dark:border-white/10 mb-4 flex-shrink-0">
                 {categories.map(categoryKey => (
                     <button
                         key={categoryKey}
                         onClick={() => setActiveCategory(categoryKey)}
-                        className={`px-4 py-2 -mb-px text-sm font-medium border-b-2 transition-colors duration-200 flex-shrink-0 whitespace-nowrap ${
+                        className={`px-4 py-2 -mb-px text-sm font-medium border-b-2 transition-colors duration-200 ${
                             activeCategory === categoryKey
                                 ? 'border-cyan-500 text-cyan-600 dark:text-cyan-400'
                                 : 'border-transparent text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white'
@@ -118,25 +100,7 @@ const DeploymentGuidesView: React.FC = () => {
                 ))}
             </div>
 
-            {hasSubCategories && activeCategoryData.subCategories && (
-                <div className="flex border-b border-gray-200 dark:border-slate-800 my-4 flex-shrink-0 overflow-x-auto">
-                {Object.keys(activeCategoryData.subCategories).map(subKey => (
-                    <button
-                    key={subKey}
-                    onClick={() => setActiveSubCategory(subKey)}
-                    className={`px-4 py-2 text-sm font-semibold transition-colors duration-200 rounded-t-lg flex-shrink-0 whitespace-nowrap ${
-                        activeSubCategory === subKey
-                        ? 'bg-white/60 dark:bg-slate-800/60 text-cyan-600 dark:text-cyan-400'
-                        : 'text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white'
-                    }`}
-                    >
-                    {t(activeCategoryData.subCategories![subKey].displayName)}
-                    </button>
-                ))}
-                </div>
-            )}
-
-            <div className={`flex-grow overflow-y-auto pr-2 ${!hasSubCategories ? 'mt-4' : ''}`}>
+            <div className="flex-grow overflow-y-auto pr-2">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4">
                     {activeGuides.map(guide => (
                         <GuideCard key={guide.title} guide={guide} />

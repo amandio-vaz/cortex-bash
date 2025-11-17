@@ -68,12 +68,12 @@ const Header: React.FC<HeaderProps> = ({ onOpenSettings, onOpenAuthModal }) => {
         )}
       </div>
 
-      <h1 className="text-5xl font-extrabold tracking-tighter text-gray-900 dark:text-transparent">
+      <h1 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-transparent">
         <span className="dark:bg-clip-text dark:bg-gradient-to-r dark:from-cyan-400 dark:to-purple-500">
           {t('headerTitle')}
         </span>
       </h1>
-      <p className="mt-3 text-lg tracking-wide text-slate-600 dark:text-slate-400">
+      <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
         {t('headerSubtitle')}
       </p>
       <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-purple-500 to-transparent opacity-20 dark:opacity-30"></div>

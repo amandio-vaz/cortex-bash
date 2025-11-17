@@ -1,7 +1,7 @@
 export const translations: { [key:string]: { [key: string]: string } } = {
   en: {
     headerTitle: 'Cortex BashStudio',
-    headerSubtitle: 'Generation, Analysis, and Validation of Bash Scripts, YAML/YML, and JSON Files, of the Agentic Era',
+    headerSubtitle: 'Bash Script Generation, Analysis, and Validation in the Agentic Era',
     tabAssistant: 'AI Assistant',
     tabChatbot: 'Chatbot',
     tabGenerator: 'Generator',
@@ -390,8 +390,6 @@ export const translations: { [key:string]: { [key: string]: string } } = {
     authSwitchToRegister: "Don't have an account? Sign up",
     authSwitchToLogin: 'Already have an account? Log in',
     tooltipLogin: 'Login or create an account',
-    authErrorInvalidEmail: 'Please enter a valid email address.',
-    authErrorPasswordLength: 'Password must be at least 6 characters long.',
     // Deployment Guides
     deploymentGuidesTitle: 'Deployment Guides',
     deploymentGuidesCategoryApt: 'APT Install',
@@ -405,18 +403,10 @@ export const translations: { [key:string]: { [key: string]: string } } = {
     guideUseCase: 'Use Case',
     guideCommands: 'Commands / Steps',
     knowledgeUpdateCheckNotification: 'Knowledge Base & Guides checked for updates.',
-    // Docker Sub-categories
-    dockerSubCategoryCore: 'Core Infrastructure',
-    dockerSubCategoryDatabases: 'Databases',
-    dockerSubCategoryObservability: 'Observability & Monitoring',
-    dockerSubCategoryApps: 'Apps & Development',
-    dockerSubCategoryBackupS3: 'Backup & S3',
-    dockerSubCategoryOS: 'Operating Systems',
-    dockerSubCategorySecurity: 'Security',
   },
   'pt-br': {
     headerTitle: 'Cortex BashStudio',
-    headerSubtitle: 'Geração, Análise e Validação de Scripts Bash, Arquivos nos Formatos YAML/YML e JSON, da era Agêntica',
+    headerSubtitle: 'Geração, Análise e Validação de Scripts Bash, na era Agêntica',
     tabAssistant: 'Assistente IA',
     tabChatbot: 'Chatbot',
     tabGenerator: 'Gerador',
@@ -805,8 +795,6 @@ export const translations: { [key:string]: { [key: string]: string } } = {
     authSwitchToRegister: 'Não tem uma conta? Cadastre-se',
     authSwitchToLogin: 'Já tem uma conta? Faça login',
     tooltipLogin: 'Faça login ou crie uma conta',
-    authErrorInvalidEmail: 'Por favor, insira um endereço de e-mail válido.',
-    authErrorPasswordLength: 'A senha deve ter pelo menos 6 caracteres.',
     // Guias de Deploy
     deploymentGuidesTitle: 'Guias de Deploy',
     deploymentGuidesCategoryApt: 'APT Install',
@@ -820,13 +808,5 @@ export const translations: { [key:string]: { [key: string]: string } } = {
     guideUseCase: 'Caso de Uso',
     guideCommands: 'Comandos / Passos',
     knowledgeUpdateCheckNotification: 'Base de Conhecimento e Guias verificados para atualizações.',
-    // Sub-categorias Docker
-    dockerSubCategoryCore: 'Infraestrutura Essencial',
-    dockerSubCategoryDatabases: 'Bancos de Dados',
-    dockerSubCategoryObservability: 'Observabilidade & Monitoramento',
-    dockerSubCategoryApps: 'Aplicações & Desenvolvimento',
-    dockerSubCategoryBackupS3: 'Backup & S3',
-    dockerSubCategoryOS: 'Sistemas Operacionais',
-    dockerSubCategorySecurity: 'Segurança',
   }
 };

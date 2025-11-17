@@ -71,43 +71,30 @@ export const refactorSelection = async (selection: string): Promise<{ suggestedC
         const ai = getAi();
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-pro',
-            contents: `You are an expert code reviewer specializing in Bash. Refactor the following Bash code snippet for clarity, efficiency, and adherence to best practices.
+            contents: `Você é um revisor de código especialista. Refatore o seguinte trecho de código Bash para clareza, eficiência e adesão às melhores práticas.
 
-Respond ONLY with a JSON object that adheres to the provided schema. The 'explanation' should be concise and formatted as Markdown.
+Forneça o código refatorado dentro de um único bloco de código \`\`\`bash.
+Imediatamente após o bloco de código, forneça uma explicação concisa das alterações feitas, formatada como Markdown.
 
-**Code Snippet to Refactor:**
+**Trecho de Código para Refatorar:**
 \`\`\`bash
 ${selection}
 \`\`\`
-`,
-            config: {
-                responseMimeType: "application/json",
-                responseSchema: {
-                    type: Type.OBJECT,
-                    properties: {
-                        suggestedCode: {
-                            type: Type.STRING,
-                            description: "The refactored Bash code snippet."
-                        },
-                        explanation: {
-                            type: Type.STRING,
-                            description: "A concise, Markdown-formatted explanation of the changes made."
-                        }
-                    },
-                    required: ['suggestedCode', 'explanation']
-                }
-            }
+`
         });
 
-        const jsonText = response.text.trim();
-        const result = JSON.parse(jsonText) as { suggestedCode: string, explanation: string };
+        const fullResponse = response.text.trim();
+        const codeMatch = fullResponse.match(/```bash([\s\S]*?)```/);
+        const suggestedCode = codeMatch?.[1]?.trim() || '';
+        const explanation = codeMatch ? fullResponse.substring(codeMatch[0].length).trim() : fullResponse;
         
-        // Basic validation in case the model returns an empty string for the code
-        if (!result.suggestedCode && result.explanation) {
-             return { suggestedCode: selection, explanation: result.explanation };
+        if (!suggestedCode) {
+            // IA não retornou um bloco de código, talvez apenas tenha explicado.
+            // Trate a resposta inteira como explicação.
+            return { suggestedCode: selection, explanation: fullResponse };
         }
 
-        return result;
+        return { suggestedCode, explanation };
 
     } catch (error) {
         console.error("Error refactoring selection:", error);
